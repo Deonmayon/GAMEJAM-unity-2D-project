@@ -12,12 +12,23 @@ public class PlayerInteract : MonoBehaviour
     private Rigidbody2D rb;
 
     public GameObject flashlightObject; 
+    public QTEManager qteManager; // เพิ่ม reference ไป QTEManager 
 
     void Start()
     {
         playerMovement = GetComponent<PlayerMovement>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
+        
+        // Auto-find QTEManager ถ้าไม่ได้กำหนด
+        if (qteManager == null)
+        {
+            qteManager = FindObjectOfType<QTEManager>();
+            if (qteManager != null)
+            {
+                Debug.Log("🎯 Auto-found QTEManager: " + qteManager.gameObject.name);
+            }
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -69,6 +80,17 @@ public class PlayerInteract : MonoBehaviour
         {
             flashlightObject.SetActive(false);
         }
+        
+        // เริ่ม QTE เมื่อซ่อนตัว
+        if (qteManager != null)
+        {
+            Debug.Log("🎮 PlayerInteract: กำลังเรียก StartQTE()");
+            qteManager.StartQTE();
+        }
+        else
+        {
+            Debug.LogError("❌ QTEManager ไม่พบ! ไม่สามารถเริ่ม QTE ได้");
+        }
         // ^^^ จบส่วนที่เพิ่ม ^^^
 
         // (โค้ดเดิม... ย้ายตัวละครไปกลางตู้)
@@ -79,6 +101,17 @@ public class PlayerInteract : MonoBehaviour
     {
         Debug.Log("?????????????!");
         isHiding = false;
+
+        // หยุด QTE เมื่อออกจากตู้
+        if (qteManager != null)
+        {
+            Debug.Log("🛑 PlayerInteract: กำลังเรียก StopQTE()");
+            qteManager.StopQTE();
+        }
+        else
+        {
+            Debug.LogError("❌ QTEManager ไม่พบ! ไม่สามารถหยุด QTE ได้");
+        }
 
         // 1. ????????????????????????
         playerMovement.enabled = true;

@@ -8,15 +8,11 @@ public class QTEManager : MonoBehaviour
     public RectTransform spawnPoint;
     public GameObject heartPrefab;
     public float speed = 400f;
-    public float pauseOnFailDuration = 1f; // หยุดชั่วคราวเมื่อ fail (วินาที)
     public RectTransform qteTrack; // เพิ่ม reference ไป QTETrack
     public float minSpawnDelay = 0.5f; // ระยะห่างขั้นต่ำระหว่างหัวใจ
     public float maxSpawnDelay = 2f; // ระยะห่างสูงสุดระหว่างหัวใจ
 
     private List<RectTransform> activeHearts = new List<RectTransform>(); // เก็บหัวใจที่กำลังเคลื่อนไหว
-    private bool isMoving = false;
-    private bool isPaused = false;
-    private float pauseTimer = 0f;
     private int score = 0;
     private int missCount = 0;
     private float nextSpawnTime = 0f;
@@ -52,22 +48,11 @@ public class QTEManager : MonoBehaviour
         // ไม่ทำงานถ้า QTE ไม่ได้เปิดใช้งาน
         if (!isQTEActive) return;
 
-        // ตรวจสอบ pause timer
-        if (isPaused)
-        {
-            pauseTimer -= Time.deltaTime;
-            if (pauseTimer <= 0)
-            {
-                isPaused = false;
-            }
-            return; // ไม่ทำอะไรต่อถ้ายัง pause อยู่
-        }
-
         // เลื่อนหัวใจทั้งหมดที่กำลังเคลื่อนไหว
         MoveAllHearts();
 
         // ตรวจสอบเวลา spawn หัวใจคู่ใหม่
-        if (Time.time >= nextSpawnTime && !isPaused)
+        if (Time.time >= nextSpawnTime)
         {
             SpawnHeartPair();
         }
@@ -137,10 +122,6 @@ public class QTEManager : MonoBehaviour
                     Debug.Log($"❌ FAIL! หัวใจเลื่อนออกจาก QTETrack แล้ว! Miss: {missCount}");
                     Destroy(activeHearts[i].gameObject);
                     activeHearts.RemoveAt(i);
-                    
-                    // หยุดชั่วคราว
-                    isPaused = true;
-                    pauseTimer = pauseOnFailDuration;
                 }
             }
             else
@@ -173,7 +154,7 @@ public class QTEManager : MonoBehaviour
         yield return new WaitForSeconds(Random.Range(0.2f, 0.5f));
         
         // ตรวจสอบอีกครั้งว่า QTE ยังเปิดอยู่หรือไม่
-        if (!isPaused && isQTEActive)
+        if (isQTEActive)
         {
             SpawnSingleHeart();
         }
@@ -230,7 +211,6 @@ public class QTEManager : MonoBehaviour
         
         // เพิ่มเข้า list
         activeHearts.Add(heartRect);
-        isMoving = true;
         
         Debug.Log($"💖 Spawn หัวใจใหม่: {newHeart.name} (รวม: {activeHearts.Count} ตัว)");
     }
@@ -246,13 +226,11 @@ public class QTEManager : MonoBehaviour
         return missCount;
     }
 
-    // ฟังก์ชันรีเซ็ตเกม (ไม่เคลียร์ clones)
+    // ฟังก์ชันรีเซ็ตเกม
     public void ResetGame()
     {
         score = 0;
         missCount = 0;
-        isPaused = false;
-        pauseTimer = 0f;
         nextSpawnTime = Time.time + 1f;
         
         // ทำลายหัวใจใน list เท่านั้น (ไม่ค้นหาใน scene)
@@ -279,16 +257,14 @@ public class QTEManager : MonoBehaviour
         // เคลียร์ clones ที่อาจเหลืออยู่ก่อนเริ่มใหม่
         ClearAllHeartClones();
         
-        // รีเซ็ตค่าต่าง ๆ แต่ไม่เคลียร์ clones อีก
+        // รีเซ็ตค่าต่าง ๆ
         score = 0;
         missCount = 0;
-        isPaused = false;
-        pauseTimer = 0f;
         nextSpawnTime = Time.time + 1f;
         
         // เริ่มเกมใหม่
         SpawnHeartPair();
-        Debug.Log("🎮 เริ่ม QTE - กดเกมเริ่มแล้ว!");
+        Debug.Log("🎮 เริ่ม QTE - เกมเริ่มแล้ว!");
     }
 
     // ฟังก์ชันปิด QTE (เรียกจาก PlayerInteract)
@@ -406,7 +382,7 @@ public class QTEManager : MonoBehaviour
 
     void CheckHit()
     {
-        if (activeHearts.Count == 0 || isPaused) 
+        if (activeHearts.Count == 0) 
         {
             return;
         }
@@ -448,10 +424,6 @@ public class QTEManager : MonoBehaviour
         {
             missCount++;
             Debug.Log($"❌ MISS! กดผิดจังหวะ! Miss: {missCount}");
-            
-            // หยุดชั่วคราวเมื่อ miss
-            isPaused = true;
-            pauseTimer = pauseOnFailDuration;
         }
     }
 }

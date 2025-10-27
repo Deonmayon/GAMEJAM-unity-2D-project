@@ -216,6 +216,19 @@ public class PlayerInteract : MonoBehaviour
     {
         Debug.Log("ออกจากที่ซ่อน!");
         isHiding = false;
+
+        // หยุด QTE เมื่อออกจากตู้
+        if (qteManager != null)
+        {
+            Debug.Log("🛑 PlayerInteract: กำลังเรียก StopQTE()");
+            qteManager.StopQTE();
+        }
+        else
+        {
+            Debug.LogError("❌ QTEManager ไม่พบ! ไม่สามารถหยุด QTE ได้");
+        }
+
+        // 1. ????????????????????????
         playerMovement.enabled = true;
         spriteRenderer.enabled = true;
         if (flashlightObject != null) flashlightObject.SetActive(true);

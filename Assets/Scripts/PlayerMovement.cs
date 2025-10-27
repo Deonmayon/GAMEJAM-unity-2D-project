@@ -4,29 +4,32 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     // ตัวแปรสำหรับปรับความเร็ว
-    public float moveSpeed = 5f;
+    public float walkSpeed = 5f;
+    public float runSpeed = 10f;
 
     // 1. เพิ่มตัวแปรสำหรับไฟฉาย (ลากไปใส่ใน Inspector)
     public Transform flashlightTransform;
 
-    // 1. เพิ่มตัวแปรสำหรับตำแหน่งไฟฉายเมื่อหันขวา
+    // ตัวแปรสำหรับตำแหน่งไฟฉายเมื่อหันขวาหรือซ้าย
     public Vector2 flashlightOffsetRight = new Vector2(0.5f, 0);
-    // 2. เพิ่มตัวแปรสำหรับตำแหน่งไฟฉายเมื่อหันซ้าย (จะกลับด้านจากขวา)
     public Vector2 flashlightOffsetLeft = new Vector2(-0.5f, 0);
 
-    // ตัวแปรสำหรับเก็บค่า Input
-    private float moveInput;
-
-    // ส่วนประกอบที่เราต้องใช้
-    private Rigidbody2D rb;
+    private PlayerStamina playerStamina;
     private SpriteRenderer spriteRenderer;
+    private Rigidbody2D rb;
+    private float moveInput;
+    private bool isRunning;
+
+    // Property สำหรับให้ script อื่นเช็คว่ากำลังวิ่งอยู่หรือไม่
+    public bool IsRunning => isRunning;
+    public bool IsMoving => Mathf.Abs(moveInput) > 0.1f;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        playerStamina = GetComponent<PlayerStamina>();
 
-        // 3. ตั้งตำแหน่งเริ่มต้นของไฟฉายให้ถูกต้อง (ถ้ามี)
         if (flashlightTransform != null)
         {
             // ตรวจสอบทิศทางเริ่มต้นของ spriteRenderer
@@ -53,14 +56,16 @@ public class PlayerMovement : MonoBehaviour
         {
             moveInput = -1f;
         }
-
         if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
         {
             moveInput = 1f;
         }
 
-        // 4. ปรับตำแหน่งและหมุนไฟฉายตามทิศทาง
-        if (moveInput > 0) // ถ้าไปทางขวา
+        // เช็คว่ากด Shift หรือไม่ (สำหรับวิ่ง)
+        isRunning = Keyboard.current.leftShiftKey.isPressed &&
+                    (playerStamina == null || playerStamina.CanRun);
+
+        if (moveInput > 0)
         {
             spriteRenderer.flipX = false; // หันขวา
             if (flashlightTransform != null)
@@ -79,8 +84,11 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
+
     void FixedUpdate()
     {
-        rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        // เลือกความเร็วตามว่ากำลังวิ่งหรือเดิน
+        float currentSpeed = isRunning ? runSpeed : walkSpeed;
+        rb.linearVelocity = new Vector2(moveInput * currentSpeed, rb.linearVelocity.y);
     }
 }

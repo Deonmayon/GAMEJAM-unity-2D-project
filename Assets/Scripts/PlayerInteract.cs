@@ -4,28 +4,30 @@ using System.Collections.Generic;
 
 public class PlayerInteract : MonoBehaviour
 {
-    // (อัปเกรด) เราใช้ตัวแปรเดียวนี้สำหรับทุกอย่าง
+    // --- (ของใหม่) เพิ่มสถานะไฟฉาย ---
+    [Header("Flashlight State")]
+    public bool hasFlashlight = false;      // ผู้เล่นมีไฟฉายหรือยัง
+    private bool isFlashlightOn = false;    // ไฟฉายกำลังเปิดอยู่หรือไม่
+    public GameObject flashlightObject;     // ไฟฉาย (Spot Light 2D) ที่ติดตัว
+
+    // --- (ของเดิม) ระบบตู้ ---
     private Interactable currentInteractable;
-
-    // (ของเดิม) สถานะการซ่อนตัว
     private bool isHiding = false;
-    private GameObject currentLocker; // เรายังต้องใช้ตัวนี้เพื่อจำว่าซ่อนตู้ไหน
+    private GameObject currentLocker;
+    private Vector3 originalPositionBeforeHiding; // สำหรับจำตำแหน่งก่อนซ่อน
 
-    // --- กระเป๋า (Inventory) ---
+    // --- (ของเดิม) กระเป๋า (Inventory) ---
     public List<string> inventory = new List<string>();
 
-    // --- Components ---
+    // --- (ของเดิม) Components ---
+    [Header("Component References")]
+    public CameraFollow mainCameraFollow;
     private PlayerMovement playerMovement;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
-    public GameObject flashlightObject;
-
-    // (เพิ่มตัวแปรนี้)
-    [Header("Component References")]
-    public CameraFollow mainCameraFollow;
+    
     // Reference to the QTE manager (can be assigned in Inspector). If not set, we auto-find it in Start().
     public QTEManager qteManager;
-
 
     void Start()
     {
@@ -42,20 +44,24 @@ public class PlayerInteract : MonoBehaviour
                 Debug.Log("QTEManager auto-assigned in PlayerInteract: " + qteManager.gameObject.name);
             }
         }
+        
+        // --- (ของใหม่) ตั้งค่าสถานะไฟฉายเริ่มต้น ---
+        hasFlashlight = false;
+        isFlashlightOn = false;
+        if (flashlightObject != null)
+        {
+            flashlightObject.SetActive(false); // ปิดไฟฉายตอนเริ่มเกม
+        }
     }
 
     // --- (อัปเกรด) ตรวจจับ "Interactable" แค่อย่างเดียว ---
     void OnTriggerEnter2D(Collider2D other)
     {
-        // 1. มองหาสคริปต์ Interactable
         Interactable interactable = other.GetComponent<Interactable>();
-
         if (interactable != null)
         {
-            currentInteractable = interactable; // จำไว้ว่าอันนี้อยู่ใกล้
+            currentInteractable = interactable;
             Debug.Log("อยู่ใกล้วัตถุ: " + interactable.type);
-
-            // 2. แสดงปุ่ม E (ของมันเอง)
             if (interactable.interactPrompt != null)
             {
                 interactable.interactPrompt.SetActive(true);
@@ -67,133 +73,131 @@ public class PlayerInteract : MonoBehaviour
     void OnTriggerExit2D(Collider2D other)
     {
         Interactable interactable = other.GetComponent<Interactable>();
-
-        // 1. เช็กว่าอันที่ออก คืออันเดียวกับที่เราจำไว้
         if (interactable != null && interactable == currentInteractable)
         {
-            // 2. ซ่อนปุ่ม E
             if (interactable.interactPrompt != null)
             {
                 interactable.interactPrompt.SetActive(false);
             }
-
-            currentInteractable = null; // ล้างค่า
+            currentInteractable = null;
         }
     }
 
-    // --- (อัปเกรด) ลำดับการกด E ---
+    // --- (อัปเกรด) ลำดับการกด E และ G ---
     void Update()
     {
+        // 1. (ของเดิม) ตรวจสอบการกด 'E' (Interact)
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
-            // ลำดับ 1: ถ้าซ่อนอยู่ ให้กด E เพื่อออก (สำคัญที่สุด)
             if (isHiding)
             {
                 UnHide();
             }
-            // ลำดับ 2: ถ้าอยู่ใกล้วัตถุ (ไม่ว่าจะตู้ หรือ กุญแจ) ให้โต้ตอบ
             else if (currentInteractable != null)
             {
                 DoInteraction();
             }
         }
-    }
 
-    // --- (ของใหม่) ฟังก์ชันจัดการการโต้ตอบหลัก ---
-    void DoInteraction()
-    {
-        // 1. ดู "ประเภท" ของวัตถุที่เราอยู่ใกล้
-        switch (currentInteractable.type)
+        // 2. (ของใหม่) ตรวจสอบการกด 'G' (Toggle Flashlight)
+        //    ต้อง "มีไฟฉาย" และ "ไม่ได้ซ่อนตัวอยู่"
+        if (hasFlashlight && !isHiding && Keyboard.current.gKey.wasPressedThisFrame)
         {
-            // 2. ถ้าเป็นของเก็บได้
-            case InteractionType.Collectable:
-                CollectItem(currentInteractable);
-                break;
-
-            // 3. ถ้าเป็นที่ซ่อน
-            case InteractionType.Hideable:
-                currentLocker = currentInteractable.gameObject; // จำตู้นี้ไว้
-                Hide();
-                break;
-
-            case InteractionType.Door:
-                // (อัปเกรด) เรียกฟังก์ชันใหม่สำหรับเช็กประตู
-                CheckDoor(currentInteractable);
-                break;
-
+            ToggleFlashlight();
         }
     }
 
-    // (ของใหม่) แยกฟังก์ชันเก็บของออกมา
+    // --- (ของใหม่) ฟังก์ชันสำหรับเปิด/ปิดไฟฉาย ---
+    void ToggleFlashlight()
+    {
+        isFlashlightOn = !isFlashlightOn; // สลับค่า true/false
+        Debug.Log("ไฟฉาย: " + isFlashlightOn);
+        if (flashlightObject != null)
+        {
+            flashlightObject.SetActive(isFlashlightOn); // เปิด/ปิด GameObject
+        }
+    }
+
+    // --- (ของเดิม) ฟังก์ชันจัดการการโต้ตอบหลัก ---
+    void DoInteraction()
+    {
+        switch (currentInteractable.type)
+        {
+            case InteractionType.Collectable:
+                CollectItem(currentInteractable);
+                break;
+            case InteractionType.Hideable:
+                currentLocker = currentInteractable.gameObject;
+                Hide();
+                break;
+            case InteractionType.Door:
+                CheckDoor(currentInteractable);
+                break;
+        }
+    }
+
+    // --- (อัปเกรด) แยกฟังก์ชันเก็บของออกมา ---
     void CollectItem(Interactable item)
     {
         string collectedItemID = item.itemID;
         Debug.Log("เก็บ " + collectedItemID);
 
-        inventory.Add(collectedItemID); // เพิ่มเข้ากระเป๋า
+        // (ของใหม่) เช็กว่าใช่ "Flashlight" หรือไม่
+        if (collectedItemID == "Flashlight")
+        {
+            hasFlashlight = true;
+            isFlashlightOn = true; // เปิดครั้งแรกอัตโนมัติ
+            if (flashlightObject != null)
+            {
+                flashlightObject.SetActive(true);
+            }
+        }
+        else
+        {
+            // (ของเดิม) ถ้าไม่ใช่ไฟฉาย ก็เก็บเข้ากระเป๋า
+            inventory.Add(collectedItemID);
+        }
 
-        Destroy(item.gameObject); // ทำลายวัตถุ
-        currentInteractable = null; // ล้างค่า
+        Destroy(item.gameObject);
+        currentInteractable = null;
     }
 
-    // --- (ของใหม่) ฟังก์ชันสำหรับเช็กประตู ---
+    // --- (ของเดิม) ฟังก์ชันสำหรับเช็กประตู ---
     void CheckDoor(Interactable door)
     {
-        // 1. เช็กว่าประตู "ไม่ได้ล็อก" หรือไม่
         if (!door.isLocked)
         {
             Debug.Log("ประตูไม่ได้ล็อก วาร์ปเลย...");
-            WarpPlayer(door); // วาร์ปตามปกติ
-            return; // จบการทำงาน
+            WarpPlayer(door);
+            return;
         }
-
-        // 2. ถ้ามาถึงตรงนี้ แปลว่าประตู "ล็อกอยู่"
-        Debug.Log("ประตูนี้ล็อกอยู่... กำลังค้นหากุญแจ: " + door.requiredKeyID);
-
-        // 3. เช็กใน "กระเป๋า" (inventory) ว่ามีกุญแจที่ต้องการหรือไม่
         if (inventory.Contains(door.requiredKeyID))
         {
             Debug.Log("พบกุญแจ! ทำการปลดล็อกและวาร์ป...");
-
-            // 4. สั่งปลดล็อกประตู (เผื่อใช้ครั้งต่อไปจะได้ไม่เช็กอีก)
             door.Unlock();
-
-            // (ทางเลือก) คุณอาจจะลบกุญแจออกจากกระเป๋าถ้าอยากให้ใช้ครั้งเดียว
-            // inventory.Remove(door.requiredKeyID);
-
-            // 5. วาร์ป
             WarpPlayer(door);
         }
         else
         {
-            // 6. ถ้าไม่มีกุญแจ
             Debug.Log("ไม่มีกุญแจ! ประตูยังคงล็อกอยู่");
-            // (ในอนาคต: เล่นเสียง "แกร็กๆ" (ล็อก) ตรงนี้)
         }
     }
 
-    // ระบบวาร์ปไปที่ตำแหน่งหลังกดประตู//
+    // --- (ของเดิม) ระบบวาร์ปไปที่ตำแหน่งหลังกดประตู ---
     void WarpPlayer(Interactable door)
     {
         if (door.warpTarget != null)
         {
             Debug.Log("วาร์ปไปที่: " + door.warpTarget.name);
-
-            // 1. (ของใหม่) อัปเดตขอบเขตของกล้อง *ก่อน*
             if (mainCameraFollow != null && door.targetMapBounds != null)
             {
-                // สั่งให้กล้องเปลี่ยนขอบเขตเป็นอันใหม่ทันที
                 mainCameraFollow.mapBounds = door.targetMapBounds;
             }
             else
             {
                 Debug.LogWarning("ประตูนี้ไม่ได้ตั้งค่า Target Map Bounds, กล้องอาจจะติดขอบเขตเก่า!");
             }
-
-            // 2. ย้ายตัวละคร (เหมือนเดิม)
             this.transform.position = door.warpTarget.position;
-
-            // 3. สั่งให้กล้อง "Snap" (ซึ่งตอนนี้มันจะใช้ขอบเขตใหม่แล้ว)
             if (mainCameraFollow != null)
             {
                 mainCameraFollow.SnapToTargetPosition(this.transform.position);
@@ -205,7 +209,7 @@ public class PlayerInteract : MonoBehaviour
         }
     }
 
-    // --- ระบบตู้ (ของเดิม ไม่เปลี่ยนแปลง) ---
+    // --- (ของเดิม) ระบบตู้ ---
     void Hide()
     {
         Debug.Log("กำลังซ่อนตัว!");
@@ -217,14 +221,22 @@ public class PlayerInteract : MonoBehaviour
             rb.linearVelocity = Vector2.zero;
         }
         spriteRenderer.enabled = false;
-        if (flashlightObject != null) flashlightObject.SetActive(false);
 
-        // (สำคัญ) ซ่อนปุ่ม E ของตู้ด้วย ตอนที่เราซ่อนอยู่
+        if (flashlightObject != null)
+        {
+            flashlightObject.SetActive(false);
+        }
+
         if (currentInteractable.interactPrompt != null)
         {
             currentInteractable.interactPrompt.SetActive(false);
         }
 
+        // vvv (ของใหม่) เพิ่มบรรทัดนี้ vvv
+        originalPositionBeforeHiding = transform.position; // <--- จำตำแหน่งปัจจุบันไว้
+        // ^^^ จบส่วนของใหม่ ^^^
+
+        // (โค้ดเดิม) ย้ายตัวไปกลางตู้
         transform.position = currentLocker.transform.position;
         // เมื่อซ่อน ให้เริ่ม QTE UI ถ้ามี QTEManager
         if (qteManager != null)
@@ -243,23 +255,30 @@ public class PlayerInteract : MonoBehaviour
         Debug.Log("ออกจากที่ซ่อน!");
         isHiding = false;
 
-        // หยุด QTE เมื่อออกจากตู้
-        if (qteManager != null)
-        {
-            Debug.Log("🛑 PlayerInteract: กำลังเรียก StopQTE()");
-            qteManager.StopQTE();
-        }
-        else
-        {
-            Debug.LogError("❌ QTEManager ไม่พบ! ไม่สามารถหยุด QTE ได้");
-        }
+        // (คอมเมนต์ QTE ของคุณ)
+        //if (qteManager != null)
+        //{
+        //    Debug.Log("🛑 PlayerInteract: กำลังเรียก StopQTE()");
+        //    qteManager.StopQTE();
+        //}
+        //else
+        //{
+        //    Debug.LogError("❌ QTEManager ไม่พบ! ไม่สามารถหยุด QTE ได้");
+        //}
 
-        // 1. ????????????????????????
         playerMovement.enabled = true;
         spriteRenderer.enabled = true;
-        if (flashlightObject != null) flashlightObject.SetActive(true);
 
-        // (สำคัญ) ถ้าเรายังอยู่ใน Trigger ตู้, ให้แสดงปุ่ม E กลับมา
+        if (flashlightObject != null && isFlashlightOn)
+        {
+            flashlightObject.SetActive(true);
+        }
+
+        // vvv (ของใหม่) เพิ่มบรรทัดนี้ vvv
+        // ย้ายผู้เล่นกลับไปที่เดิมที่เคยยืนอยู่
+        transform.position = originalPositionBeforeHiding;
+        // ^^^ จบส่วนของใหม่ ^^^
+
         if (currentInteractable != null && currentInteractable.type == InteractionType.Hideable)
         {
             if (currentInteractable.interactPrompt != null)

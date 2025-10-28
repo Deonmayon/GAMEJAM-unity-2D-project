@@ -25,15 +25,9 @@ public class PlayerInteract : MonoBehaviour
     private PlayerMovement playerMovement;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
-    public GameObject flashlightObject;
-
-    // (เพิ่มตัวแปรนี้)
-    [Header("Component References")]
-    public CameraFollow mainCameraFollow;
+    
     // Reference to the QTE manager (can be assigned in Inspector). If not set, we auto-find it in Start().
     public QTEManager qteManager;
-
-    // (หมายเหตุ: flashlightObject ถูกย้ายไปอยู่ข้างบนแล้ว)
 
     void Start()
     {
@@ -49,6 +43,8 @@ public class PlayerInteract : MonoBehaviour
             {
                 Debug.Log("QTEManager auto-assigned in PlayerInteract: " + qteManager.gameObject.name);
             }
+        }
+        
         // --- (ของใหม่) ตั้งค่าสถานะไฟฉายเริ่มต้น ---
         hasFlashlight = false;
         isFlashlightOn = false;

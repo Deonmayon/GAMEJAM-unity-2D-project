@@ -18,7 +18,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6547847596594701324
 RectTransform:
   m_ObjectHideFlags: 0
@@ -28,7 +28,7 @@ RectTransform:
   m_GameObject: {fileID: 476549231702834000}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.0037037039, y: 0.0052747247, z: 0.01}
+  m_LocalScale: {x: 0.007180506, y: 0.01742607, z: 0.022808664}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5253412168150092491}
@@ -36,7 +36,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0.017582417}
+  m_AnchoredPosition: {x: 0, y: 2.32}
   m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &1749618539954370537
@@ -190,7 +190,7 @@ GameObject:
   - component: {fileID: 3441063834888639248}
   - component: {fileID: 6673205426253836788}
   m_Layer: 0
-  m_Name: Door_Prefab
+  m_Name: Door_Prefab (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -205,12 +205,11 @@ Transform:
   m_GameObject: {fileID: 7539492863620384320}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.97, y: -1.41, z: 0}
-  m_LocalScale: {x: 1.35, y: 2.84375, z: 1}
+  m_LocalPosition: {x: -12.86, y: 1.3959, z: 0}
+  m_LocalScale: {x: 0.67198247, y: 0.8137368, z: 0.5865221}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6547847596594701324}
-  - {fileID: 5927824006672880589}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &3557083743640240444
@@ -260,12 +259,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.9191772, g: 1, b: 0, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 7724a3cd3d516194e858128904c75a11, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 7.23, y: 9.46}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -305,17 +304,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 0.88}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.47531423}
+    oldSize: {x: 7.23, y: 9.46}
+    newSize: {x: 7.23, y: 9.46}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 3.28, y: 6.33}
   m_EdgeRadius: 0
 --- !u!114 &6673205426253836788
 MonoBehaviour:
@@ -331,37 +330,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   type: 2
   itemID: 
-  warpTarget: {fileID: 5927824006672880589}
+  warpTarget: {fileID: 0}
   targetMapBounds: {fileID: 0}
+  isLocked: 0
+  requiredKeyID: 
   interactPrompt: {fileID: 476549231702834000}
---- !u!1 &9187881756184965929
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5927824006672880589}
-  m_Layer: 0
-  m_Name: WarpPosition
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5927824006672880589
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9187881756184965929}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.029629603, y: 0.01054944, z: 0}
-  m_LocalScale: {x: 0.7407408, y: 0.35164833, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7640711647373269426}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

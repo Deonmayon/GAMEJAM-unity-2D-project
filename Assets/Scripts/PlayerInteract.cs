@@ -10,6 +10,12 @@ public class PlayerInteract : MonoBehaviour
     private bool isFlashlightOn = false;    // ไฟฉายกำลังเปิดอยู่หรือไม่
     public GameObject flashlightObject;     // ไฟฉาย (Spot Light 2D) ที่ติดตัว
 
+    //Devnine
+    [Header("Audio Settings")]
+    public AudioSource interactAudioSource;  // AudioSource สำหรับเสียงโต้ตอบ
+    public AudioClip hideSound;              // เสียงเข้าตู้
+    public AudioClip unhideSound;            // เสียงออกจากตู้
+
     // --- (ของเดิม) ระบบตู้ ---
     private Interactable currentInteractable;
     private bool isHiding = false;
@@ -51,6 +57,15 @@ public class PlayerInteract : MonoBehaviour
         if (flashlightObject != null)
         {
             flashlightObject.SetActive(false); // ปิดไฟฉายตอนเริ่มเกม
+        }
+
+        // Devnine
+        if (interactAudioSource == null)
+        {
+            interactAudioSource = gameObject.AddComponent<AudioSource>();
+            interactAudioSource.playOnAwake = false;
+            interactAudioSource.loop = false;
+            Debug.LogWarning("สร้าง AudioSource สำหรับเสียงโต้ตอบอัตโนมัติ");
         }
     }
 
@@ -213,6 +228,11 @@ public class PlayerInteract : MonoBehaviour
     void Hide()
     {
         Debug.Log("กำลังซ่อนตัว!");
+
+        //Dev
+        // === เพิ่มบรรทัดนี้ - เล่นเสียงเข้าตู้ ===
+        PlaySound(hideSound);
+
         isHiding = true;
         playerMovement.enabled = false;
         // Stop physics movement
@@ -253,6 +273,10 @@ public class PlayerInteract : MonoBehaviour
     void UnHide()
     {
         Debug.Log("ออกจากที่ซ่อน!");
+
+        //Devnine
+        PlaySound(unhideSound);
+
         isHiding = false;
 
         // (คอมเมนต์ QTE ของคุณ)
@@ -285,6 +309,13 @@ public class PlayerInteract : MonoBehaviour
             {
                 currentInteractable.interactPrompt.SetActive(true);
             }
+        }
+    }
+    void PlaySound(AudioClip clip)
+    {
+        if (interactAudioSource != null && clip != null)
+        {
+            interactAudioSource.PlayOneShot(clip);
         }
     }
 }

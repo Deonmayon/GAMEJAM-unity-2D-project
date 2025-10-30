@@ -41,6 +41,9 @@ public class PlayerInteract : MonoBehaviour
     private PlayerMovement playerMovement;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
+    
+    // Reference to the QTE manager (can be assigned in Inspector). If not set, we auto-find it in Start().
+    public QTEManager qteManager;
 
     void Start()
     {
@@ -48,6 +51,17 @@ public class PlayerInteract : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
 
+        // Auto-assign QTEManager if it wasn't set in the Inspector
+        if (qteManager == null)
+        {
+            qteManager = FindObjectOfType<QTEManager>();
+            if (qteManager != null)
+            {
+                Debug.Log("QTEManager auto-assigned in PlayerInteract: " + qteManager.gameObject.name);
+            }
+        }
+        
+        // --- (ของใหม่) ตั้งค่าสถานะไฟฉายเริ่มต้น ---
         hasFlashlight = false;
         isFlashlightOn = false;
         if (flashlightObject != null)
@@ -341,7 +355,11 @@ public class PlayerInteract : MonoBehaviour
         Debug.Log("กำลังซ่อนตัว!");
         isHiding = true;
         playerMovement.enabled = false;
-        rb.linearVelocity = Vector2.zero;
+        // Stop physics movement
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+        }
         spriteRenderer.enabled = false;
 
         if (flashlightObject != null)
@@ -357,6 +375,16 @@ public class PlayerInteract : MonoBehaviour
         originalPositionBeforeHiding = transform.position;
         // (โค้ดเดิมของคุณย้ายไปที่ "กลางตู้" ผมจะเก็บไว้อย่างนั้น)
         transform.position = currentLocker.transform.position;
+        // เมื่อซ่อน ให้เริ่ม QTE UI ถ้ามี QTEManager
+        if (qteManager != null)
+        {
+            Debug.Log("🎯 PlayerInteract: เรียก StartQTE() เมื่อซ่อน");
+            qteManager.StartQTE();
+        }
+        else
+        {
+            Debug.LogWarning("QTEManager ไม่ได้ตั้งค่าใน PlayerInteract — QTE จะไม่เริ่ม");
+        }
     }
 
     void UnHide()

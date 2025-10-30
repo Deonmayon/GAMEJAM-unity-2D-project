@@ -137,7 +137,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.9, y: 6.79}
+  m_Size: {x: 0.74, y: 6.79}
   m_EdgeRadius: 0
 --- !u!114 &6912986807563404319
 MonoBehaviour:
@@ -153,11 +153,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Interactable
   type: 1
   itemID: 
+  itemDescription: 
   warpTarget: {fileID: 0}
   targetMapBounds: {fileID: 0}
   isLocked: 0
   requiredKeyID: 
+  correctPassword: 
   interactPrompt: {fileID: 6244943123782459254}
+  lockedPrompt: {fileID: 0}
 --- !u!1 &4855786315920606319
 GameObject:
   m_ObjectHideFlags: 0

@@ -92,6 +92,7 @@ public class InventoryUI : MonoBehaviour
             // 10. ตั้งค่าข้อความและเปิด UI
             descriptionText.text = itemData.description;
             descriptionPanel.SetActive(true);
+            print ("Show description for");
         }
     }
 

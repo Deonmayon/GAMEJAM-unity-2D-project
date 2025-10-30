@@ -13,9 +13,18 @@ MonoBehaviour:
   m_Name: ItemDatabase
   m_EditorClassIdentifier: Assembly-CSharp::ItemDatabase
   allItems:
-  - itemID: Key_Room01
-    itemIcon: {fileID: 4186458242088233936, guid: 1e747d8ddd2372e4a96b4ef208911abf, type: 3}
-    description: "\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E2B\u0E49\u0E2D\u0E07 1"
-  - itemID: Key_Lab
-    itemIcon: {fileID: 1730826577450134818, guid: 38adb3455a01af94bb0ba832cb87f9ec, type: 3}
-    description: "\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E2B\u0E49\u0E2D\u0E07 Lab"
+  - itemID: Key_Desk
+    itemIcon: {fileID: -1845372054359246497, guid: e09e5a9686c0f0b43a15a984a922dfd4, type: 3}
+    description: "\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E42\u0E15\u0E4A\u0E30\u0E2B\u0E49\u0E2D\u0E07\u0E1E\u0E31\u0E01\u0E2D\u0E32\u0E08\u0E32\u0E23\u0E22\u0E4C\u0E0A\u0E31\u0E49\u0E19
+      2"
+  - itemID: Key_Exit
+    itemIcon: {fileID: -1845372054359246497, guid: e09e5a9686c0f0b43a15a984a922dfd4, type: 3}
+    description: "\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E17\u0E32\u0E07\u0E2D\u0E2D\u0E01"
+  - itemID: Key_Lab_B
+    itemIcon: {fileID: -1845372054359246497, guid: e09e5a9686c0f0b43a15a984a922dfd4, type: 3}
+    description: "\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E2B\u0E49\u0E2D\u0E07\u0E41\u0E25\u0E1B
+      \u0E0A\u0E31\u0E49\u0E19 3 \u0E15\u0E36\u0E01 B"
+  - itemID: Key_Researcher
+    itemIcon: {fileID: -1845372054359246497, guid: e09e5a9686c0f0b43a15a984a922dfd4, type: 3}
+    description: "\u0E01\u0E38\u0E0D\u0E41\u0E08\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E2B\u0E49\u0E2D\u0E07\u0E1E\u0E31\u0E01\u0E19\u0E31\u0E01\u0E27\u0E34\u0E08\u0E31\u0E22\u0E0A\u0E31\u0E49\u0E19
+      3 \u0E15\u0E36\u0E01 B"

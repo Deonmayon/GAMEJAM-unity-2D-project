@@ -17,6 +17,12 @@ public class PlayerInteract : MonoBehaviour
     private bool isFlashlightOn = false;
     public GameObject flashlightObject;
 
+    // --- (ของใหม่) Audio Settings ---
+    [Header("Audio Settings")]
+    public AudioSource interactAudioSource;  // AudioSource สำหรับเสียงโต้ตอบ
+    public AudioClip hideSound;              // เสียงเข้าตู้
+    public AudioClip unhideSound;            // เสียงออกจากตู้
+
     // --- (ของใหม่) UI Item Info ---
     [Header("Item Info UI")]
     [Tooltip("ลาก Panel พื้นหลังของ UI มาใส่")]
@@ -77,6 +83,15 @@ public class PlayerInteract : MonoBehaviour
         if (itemInfoText != null)
         {
             itemInfoText.gameObject.SetActive(false);
+        }
+
+        // --- (ของใหม่) ตั้งค่า Audio Source ---
+        if (interactAudioSource == null)
+        {
+            interactAudioSource = gameObject.AddComponent<AudioSource>();
+            interactAudioSource.playOnAwake = false;
+            interactAudioSource.loop = false;
+            Debug.LogWarning("สร้าง AudioSource สำหรับเสียงโต้ตอบอัตโนมัติ");
         }
 
         if (keypadController != null)
@@ -353,6 +368,10 @@ public class PlayerInteract : MonoBehaviour
     void Hide()
     {
         Debug.Log("กำลังซ่อนตัว!");
+        
+        // === เล่นเสียงเข้าตู้ ===
+        PlaySound(hideSound);
+        
         isHiding = true;
         playerMovement.enabled = false;
         // Stop physics movement
@@ -390,6 +409,10 @@ public class PlayerInteract : MonoBehaviour
     void UnHide()
     {
         Debug.Log("ออกจากที่ซ่อน!");
+        
+        // === เล่นเสียงออกจากตู้ ===
+        PlaySound(unhideSound);
+        
         isHiding = false;
 
         // (คอมเมนต์ QTE ของคุณ)
@@ -454,5 +477,14 @@ public class PlayerInteract : MonoBehaviour
     {
         Debug.Log("PlayerInteract: ได้รับ Event ปิด!");
         playerMovement.enabled = true; // คืนการควบคุม
+    }
+
+    // --- (ของใหม่) ฟังก์ชันเล่นเสียง ---
+    void PlaySound(AudioClip clip)
+    {
+        if (interactAudioSource != null && clip != null)
+        {
+            interactAudioSource.PlayOneShot(clip);
+        }
     }
 }

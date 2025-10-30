@@ -14,7 +14,6 @@ public class PlayerMovement : MonoBehaviour
     public Vector2 flashlightOffsetRight = new Vector2(0.5f, 0);
     public Vector2 flashlightOffsetLeft = new Vector2(-0.5f, 0);
 
-    // NineDev
     [Header("Footstep Audio Settings")]
     public AudioSource footstepAudioSource;
     public AudioClip footstepSound;
@@ -40,7 +39,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private float moveInput;
     private bool isRunning;
-    // NineDev
+    private Animator animator;
 
     // Property สำหรับให้ script อื่นเช็คว่ากำลังวิ่งอยู่หรือไม่
     public bool IsRunning => isRunning;
@@ -51,6 +50,9 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         playerStamina = GetComponent<PlayerStamina>();
+
+        
+        animator = GetComponent<Animator>();
 
         if (flashlightTransform != null)
         {
@@ -66,7 +68,7 @@ public class PlayerMovement : MonoBehaviour
                 flashlightTransform.rotation = Quaternion.Euler(0, 0, 270);
             }
         }
-        // NineDev
+        
         if (footstepAudioSource == null)
         {
             footstepAudioSource = gameObject.AddComponent<AudioSource>();
@@ -74,7 +76,7 @@ public class PlayerMovement : MonoBehaviour
             footstepAudioSource.loop = false;
             Debug.LogWarning("สร้าง AudioSource สำหรับเสียงเท้าอัตโนมัติ");
         }
-        // NineDev
+
     }
 
     void Update()
@@ -114,8 +116,28 @@ public class PlayerMovement : MonoBehaviour
                 flashlightTransform.rotation = Quaternion.Euler(0, 0, 90); // หมุนไปทางซ้าย
             }
         }
-        // NineDev
-        HandleFootstepSound();
+
+        Animator animator = GetComponent<Animator>();
+        // ← เพิ่มส่วนนี้เพื่อควบคุม Animation
+        if (animator != null)
+        {
+            // ตั้ง isRunning เป็น true เมื่อกำลังเคลื่อนที่
+            animator.SetBool("isRunning", IsMoving);
+
+            // ปรับความเร็ว Animation ตามการวิ่ง
+            if (IsMoving && isRunning)
+            {
+                animator.speed = 1.5f; // วิ่ง = เร่งความเร็ว Animation 1.5 เท่า
+            }
+            else if (IsMoving)
+            {
+                animator.speed = 1f; // เดิน = ความเร็วปกติ
+            }
+            else
+            {
+                animator.speed = 1f; // Idle = ความเร็วปกติ
+            }
+        }
     }
 
     void FixedUpdate()
@@ -124,59 +146,14 @@ public class PlayerMovement : MonoBehaviour
         float currentSpeed = isRunning ? runSpeed : walkSpeed;
         rb.linearVelocity = new Vector2(moveInput * currentSpeed, rb.linearVelocity.y);
     }
-    // NineDev
-    void HandleFootstepSound()
+
+    public void PlayFootstepSound(float pitch)
     {
-        bool isMovingNow = IsMoving;
-
-        if (isMovingNow && !wasMovingLastFrame)
+        if (footstepAudioSource != null && footstepSound != null && IsMoving)
         {
-            footstepTimer = 0f;
-            // Devnine
-            // เล่นเสียงครั้งแรกทันที
             float currentPitch = isRunning ? runPitch : walkPitch;
-            PlayFootstepSound(currentPitch);
-        }
-
-        if (isMovingNow)
-        {
-            float currentInterval = isRunning ? runFootstepInterval : walkFootstepInterval;
-            float currentPitch = isRunning ? runPitch : walkPitch;
-
-            footstepTimer += Time.deltaTime;
-
-            if (footstepTimer >= currentInterval)
-            {
-                PlayFootstepSound(currentPitch);
-                footstepTimer = 0f;
-            }
-        }
-        else
-        {
-            //devnine
-            // ถ้าหยุดเดิน → หยุดเสียงทันที
-            if (wasMovingLastFrame)
-            {
-                if (footstepAudioSource != null && footstepAudioSource.isPlaying)
-                {
-                    footstepAudioSource.Stop();
-                }
-            }
-            footstepTimer = 0f;
-        }
-
-        wasMovingLastFrame = isMovingNow;
-    }
-
-    void PlayFootstepSound(float pitch)
-    {
-        if (footstepAudioSource != null && footstepSound != null)
-        {
-
-            footstepAudioSource.pitch = pitch;
-            // สุ่มความดังในช่วง minVolume ถึง maxVolume
+            footstepAudioSource.pitch = currentPitch;
             footstepAudioSource.volume = Random.Range(minVolume, maxVolume);
-
             footstepAudioSource.PlayOneShot(footstepSound);
         }
     }

@@ -1,20 +1,35 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using System.Collections;
+using TMPro; // 1. (ของใหม่) ต้องเพิ่มบรรทัดนี้สำหรับ TextMeshPro
 
 public class PlayerInteract : MonoBehaviour
 {
-    // --- (ของใหม่) เพิ่มสถานะไฟฉาย ---
+    // --- (ของเดิม) Fade Effect ---
+    [Header("Fade Effect")]
+    public Animator fadeAnimator;
+    public float fadeDuration = 0.5f;
+
+    // --- (ของเดิม) Flashlight State ---
     [Header("Flashlight State")]
-    public bool hasFlashlight = false;      // ผู้เล่นมีไฟฉายหรือยัง
-    private bool isFlashlightOn = false;    // ไฟฉายกำลังเปิดอยู่หรือไม่
-    public GameObject flashlightObject;     // ไฟฉาย (Spot Light 2D) ที่ติดตัว
+    public bool hasFlashlight = false;
+    private bool isFlashlightOn = false;
+    public GameObject flashlightObject;
+
+    // --- (ของใหม่) UI Item Info ---
+    [Header("Item Info UI")]
+    [Tooltip("ลาก Panel พื้นหลังของ UI มาใส่")]
+    public GameObject itemInfoPanel;
+    [Tooltip("ลาก Text (TextMeshPro) ที่ใช้แสดงข้อความมาใส่")]
+    public TextMeshProUGUI itemInfoText;
+    private bool isDisplayingItemInfo = false; // สถานะกำลังแสดง UI
 
     // --- (ของเดิม) ระบบตู้ ---
     private Interactable currentInteractable;
     private bool isHiding = false;
     private GameObject currentLocker;
-    private Vector3 originalPositionBeforeHiding; // สำหรับจำตำแหน่งก่อนซ่อน
+    private Vector3 originalPositionBeforeHiding;
 
     // --- (ของเดิม) กระเป๋า (Inventory) ---
     public List<string> inventory = new List<string>();
@@ -22,11 +37,10 @@ public class PlayerInteract : MonoBehaviour
     // --- (ของเดิม) Components ---
     [Header("Component References")]
     public CameraFollow mainCameraFollow;
+    public KeypadController keypadController;
     private PlayerMovement playerMovement;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
-
-    // (หมายเหตุ: flashlightObject ถูกย้ายไปอยู่ข้างบนแล้ว)
 
     void Start()
     {
@@ -34,16 +48,31 @@ public class PlayerInteract : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
 
-        // --- (ของใหม่) ตั้งค่าสถานะไฟฉายเริ่มต้น ---
         hasFlashlight = false;
         isFlashlightOn = false;
         if (flashlightObject != null)
         {
-            flashlightObject.SetActive(false); // ปิดไฟฉายตอนเริ่มเกม
+            flashlightObject.SetActive(false);
+        }
+
+        // (ของใหม่) ตรวจสอบให้แน่ใจว่า UI Item Info ถูกปิดอยู่ตอนเริ่ม
+        if (itemInfoPanel != null)
+        {
+            itemInfoPanel.SetActive(false);
+        }
+        if (itemInfoText != null)
+        {
+            itemInfoText.gameObject.SetActive(false);
+        }
+
+        if (keypadController != null)
+        {
+            keypadController.OnSuccess.AddListener(OnKeypadSuccess);
+            keypadController.OnClose.AddListener(OnKeypadClose);
         }
     }
 
-    // --- (อัปเกรด) ตรวจจับ "Interactable" แค่อย่างเดียว ---
+    // --- (ของเดิม) OnTriggerEnter2D / OnTriggerExit2D ---
     void OnTriggerEnter2D(Collider2D other)
     {
         Interactable interactable = other.GetComponent<Interactable>();
@@ -55,10 +84,13 @@ public class PlayerInteract : MonoBehaviour
             {
                 interactable.interactPrompt.SetActive(true);
             }
+            if (interactable.lockedPrompt != null)
+            {
+                interactable.lockedPrompt.SetActive(false);
+            }
         }
     }
 
-    // --- (อัปเกรด) ออกจาก "Interactable" ---
     void OnTriggerExit2D(Collider2D other)
     {
         Interactable interactable = other.GetComponent<Interactable>();
@@ -68,18 +100,35 @@ public class PlayerInteract : MonoBehaviour
             {
                 interactable.interactPrompt.SetActive(false);
             }
+            if (interactable.lockedPrompt != null)
+            {
+                interactable.lockedPrompt.SetActive(false);
+            }
             currentInteractable = null;
         }
     }
 
-    // --- (อัปเกรด) ลำดับการกด E และ G ---
+    // --- (อัปเกรด) แก้ไข Update ให้รองรับ UI Item Info ---
     void Update()
     {
-        // 1. (ของเดิม) ตรวจสอบการกด 'E' (Interact)
+        // 1. (ของใหม่) ถ้ากำลังแสดง UI Item Info, จะรับอินพุตแค่คลิกซ้าย
+        if (isDisplayingItemInfo)
+        {
+            // ตรวจสอบการคลิกซ้าย
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                HideItemInfo(); // ซ่อน UI
+            }
+            return; // หยุดการทำงานของ Update ที่เหลือทั้งหมด
+        }
+
+        // 2. (ของเดิม) ตรวจสอบการกด 'E' (Interact)
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
             if (isHiding)
             {
+                // (อัปเกรด) เราต้องเปลี่ยน UnHide() เป็น Coroutine (ถ้ามันมี Animation)
+                // แต่โค้ดของคุณยังเป็น void อยู่ เราจะเรียก void UnHide() ตามเดิม
                 UnHide();
             }
             else if (currentInteractable != null)
@@ -88,54 +137,77 @@ public class PlayerInteract : MonoBehaviour
             }
         }
 
-        // 2. (ของใหม่) ตรวจสอบการกด 'G' (Toggle Flashlight)
-        //    ต้อง "มีไฟฉาย" และ "ไม่ได้ซ่อนตัวอยู่"
+        // 3. (ของเดิม) ตรวจสอบการกด 'G' (Toggle Flashlight)
         if (hasFlashlight && !isHiding && Keyboard.current.gKey.wasPressedThisFrame)
         {
             ToggleFlashlight();
         }
     }
 
-    // --- (ของใหม่) ฟังก์ชันสำหรับเปิด/ปิดไฟฉาย ---
+    // --- (ของเดิม) ฟังก์ชันสำหรับเปิด/ปิดไฟฉาย ---
     void ToggleFlashlight()
     {
-        isFlashlightOn = !isFlashlightOn; // สลับค่า true/false
+        isFlashlightOn = !isFlashlightOn;
         Debug.Log("ไฟฉาย: " + isFlashlightOn);
         if (flashlightObject != null)
         {
-            flashlightObject.SetActive(isFlashlightOn); // เปิด/ปิด GameObject
+            flashlightObject.SetActive(isFlashlightOn);
         }
     }
 
-    // --- (ของเดิม) ฟังก์ชันจัดการการโต้ตอบหลัก ---
+    // --- (อัปเกรด) DoInteraction จะจัดการ Coroutine สำหรับ Collectable ---
     void DoInteraction()
     {
         switch (currentInteractable.type)
         {
             case InteractionType.Collectable:
-                CollectItem(currentInteractable);
+                // (อัปเกรด) เรียก Coroutine สำหรับเก็บไอเทม
+                StartCoroutine(CollectItemProcess(currentInteractable));
                 break;
             case InteractionType.Hideable:
                 currentLocker = currentInteractable.gameObject;
+                // (โค้ดของคุณยังเป็น void Hide() เราจะเรียกตามนั้น)
                 Hide();
                 break;
             case InteractionType.Door:
-                CheckDoor(currentInteractable);
+                CheckDoor(currentInteractable); // (CheckDoor เรียก Coroutine ของมันเองอยู่แล้ว)
+                break;
+
+            case InteractionType.KeypadDoor:
+                CheckKeypadDoor(currentInteractable);
                 break;
         }
     }
 
-    // --- (อัปเกรด) แยกฟังก์ชันเก็บของออกมา ---
-    void CollectItem(Interactable item)
+    // --- (อัปเกรด) เปลี่ยน CollectItem เป็น Coroutine ---
+    IEnumerator CollectItemProcess(Interactable item)
     {
+        // 1. หยุดผู้เล่น
+        playerMovement.enabled = false;
+
+        if (item.isLockedByPrerequisite && !inventory.Contains(item.requiredItemID))
+        {
+            Debug.Log("เก็บไม่ได้! ต้องมี " + item.requiredItemID + " ก่อน");
+
+            // แสดง UI "ล็อก" (เหมือนประตู)
+            if (item.lockedPrompt != null)
+            {
+                item.lockedPrompt.SetActive(true);
+            }
+
+            // คืนการควบคุมให้ผู้เล่น และ *หยุด* Coroutine นี้ทันที
+            playerMovement.enabled = true;
+            yield break; // <-- ออกจาก Coroutine
+        }
+
+        // 2. เก็บไอเทม (โลจิกเดิมจาก CollectItem)
         string collectedItemID = item.itemID;
         Debug.Log("เก็บ " + collectedItemID);
 
-        // (ของใหม่) เช็กว่าใช่ "Flashlight" หรือไม่
         if (collectedItemID == "Flashlight")
         {
             hasFlashlight = true;
-            isFlashlightOn = true; // เปิดครั้งแรกอัตโนมัติ
+            isFlashlightOn = true;
             if (flashlightObject != null)
             {
                 flashlightObject.SetActive(true);
@@ -143,13 +215,53 @@ public class PlayerInteract : MonoBehaviour
         }
         else
         {
-            // (ของเดิม) ถ้าไม่ใช่ไฟฉาย ก็เก็บเข้ากระเป๋า
             inventory.Add(collectedItemID);
         }
 
+        // 3. ทำลายไอเทมที่พื้น
         Destroy(item.gameObject);
         currentInteractable = null;
+
+        // 4. แสดง UI Item Info
+        if (itemInfoPanel != null && itemInfoText != null)
+        {
+            itemInfoText.text = item.itemDescription; // ใส่ข้อความจาก Interactable
+            itemInfoPanel.SetActive(true);
+            itemInfoText.gameObject.SetActive(true);
+            isDisplayingItemInfo = true; // ตั้งค่าสถานะว่ากำลังแสดง UI
+        }
+        else
+        {
+            // ถ้า UI ไม่พร้อม ก็คืนการควบคุมผู้เล่นเลย
+            Debug.LogWarning("Item Info UI ไม่ได้ถูกตั้งค่าใน PlayerInteract!");
+            playerMovement.enabled = true;
+        }
+
+        // 5. รอจนกว่าผู้เล่นจะปิด UI
+        // (Update จะเช็ก isDisplayingItemInfo และรอคลิกซ้าย)
+        while (isDisplayingItemInfo)
+        {
+            yield return null; // รอ 1 เฟรม แล้วเช็กใหม่
+        }
+
+        // 6. เมื่อ UI ปิดแล้ว (HideItemInfo ถูกเรียก) ก็คืนการควบคุมผู้เล่น
+        playerMovement.enabled = true;
     }
+
+    // (ของใหม่) ฟังก์ชันสำหรับซ่อน UI Item Info (ถูกเรียกโดย Update)
+    void HideItemInfo()
+    {
+        if (itemInfoPanel != null)
+        {
+            itemInfoPanel.SetActive(false);
+        }
+        if (itemInfoText != null)
+        {
+            itemInfoText.gameObject.SetActive(false);
+        }
+        isDisplayingItemInfo = false; // ตั้งค่าสถานะว่า UI ปิดแล้ว
+    }
+
 
     // --- (ของเดิม) ฟังก์ชันสำหรับเช็กประตู ---
     void CheckDoor(Interactable door)
@@ -157,22 +269,47 @@ public class PlayerInteract : MonoBehaviour
         if (!door.isLocked)
         {
             Debug.Log("ประตูไม่ได้ล็อก วาร์ปเลย...");
-            WarpPlayer(door);
+            StartCoroutine(WarpTransition(door));
             return;
         }
         if (inventory.Contains(door.requiredKeyID))
         {
             Debug.Log("พบกุญแจ! ทำการปลดล็อกและวาร์ป...");
             door.Unlock();
-            WarpPlayer(door);
+            StartCoroutine(WarpTransition(door));
         }
         else
         {
             Debug.Log("ไม่มีกุญแจ! ประตูยังคงล็อกอยู่");
         }
+        if (door.lockedPrompt != null)
+        {
+            door.lockedPrompt.SetActive(true);
+        }
     }
 
-    // --- (ของเดิม) ระบบวาร์ปไปที่ตำแหน่งหลังกดประตู ---
+    // --- (ของเดิม) Coroutine สำหรับ WarpTransition ---
+    IEnumerator WarpTransition(Interactable door)
+    {
+        playerMovement.enabled = false;
+        if (fadeAnimator != null)
+        {
+            fadeAnimator.SetTrigger("StartFadeOut");
+        }
+        yield return new WaitForSeconds(fadeDuration);
+
+        WarpPlayer(door); // เรียกฟังก์ชันวาร์ปเดิม
+
+        if (fadeAnimator != null)
+        {
+            fadeAnimator.SetTrigger("StartFadeIn");
+        }
+        yield return new WaitForSeconds(fadeDuration);
+
+        playerMovement.enabled = true;
+    }
+
+    // --- (ของเดิม) ระบบวาร์ป ---
     void WarpPlayer(Interactable door)
     {
         if (door.warpTarget != null)
@@ -217,11 +354,8 @@ public class PlayerInteract : MonoBehaviour
             currentInteractable.interactPrompt.SetActive(false);
         }
 
-        // vvv (ของใหม่) เพิ่มบรรทัดนี้ vvv
-        originalPositionBeforeHiding = transform.position; // <--- จำตำแหน่งปัจจุบันไว้
-        // ^^^ จบส่วนของใหม่ ^^^
-
-        // (โค้ดเดิม) ย้ายตัวไปกลางตู้
+        originalPositionBeforeHiding = transform.position;
+        // (โค้ดเดิมของคุณย้ายไปที่ "กลางตู้" ผมจะเก็บไว้อย่างนั้น)
         transform.position = currentLocker.transform.position;
     }
 
@@ -249,10 +383,7 @@ public class PlayerInteract : MonoBehaviour
             flashlightObject.SetActive(true);
         }
 
-        // vvv (ของใหม่) เพิ่มบรรทัดนี้ vvv
-        // ย้ายผู้เล่นกลับไปที่เดิมที่เคยยืนอยู่
-        transform.position = originalPositionBeforeHiding;
-        // ^^^ จบส่วนของใหม่ ^^^
+        transform.position = originalPositionBeforeHiding; // ย้ายกลับที่เดิม
 
         if (currentInteractable != null && currentInteractable.type == InteractionType.Hideable)
         {
@@ -261,5 +392,39 @@ public class PlayerInteract : MonoBehaviour
                 currentInteractable.interactPrompt.SetActive(true);
             }
         }
+    }
+
+    void CheckKeypadDoor(Interactable door)
+    {
+        // 1. ถ้าประตูปลดล็อกแล้ว ก็วาร์ปเลย
+        if (!door.isLocked)
+        {
+            StartCoroutine(WarpTransition(door));
+        }
+        // 2. ถ้ายังล็อกอยู่ ให้เปิด Keypad
+        else
+        {
+            Debug.Log("ประตูนี้ต้องใช้รหัส");
+            playerMovement.enabled = false; // หยุดผู้เล่น
+            keypadController.ShowKeypad(door.correctPassword);
+        }
+    }
+
+    // 3. ฟังก์ชันนี้จะถูกเรียกโดย Event "OnSuccess"
+    void OnKeypadSuccess()
+    {
+        Debug.Log("PlayerInteract: ได้รับ Event สำเร็จ!");
+        if (currentInteractable != null && currentInteractable.type == InteractionType.KeypadDoor)
+        {
+            currentInteractable.Unlock(); // ปลดล็อกประตู
+        }
+        playerMovement.enabled = true; // คืนการควบคุม
+    }
+
+    // 4. ฟังก์ชันนี้จะถูกเรียกโดย Event "OnClose"
+    void OnKeypadClose()
+    {
+        Debug.Log("PlayerInteract: ได้รับ Event ปิด!");
+        playerMovement.enabled = true; // คืนการควบคุม
     }
 }

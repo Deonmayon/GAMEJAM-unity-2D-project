@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class DialogueUI : MonoBehaviour
 {
@@ -14,14 +15,20 @@ public class DialogueUI : MonoBehaviour
 
     [Header("Data")]
     public DialogueData dialogue;
+    
+    private NpcMovementData currentNpcMovement; // เก็บข้อมูล NPC movement ที่ส่งมาจาก Trigger
 
     [Header("Lock Player While Talking")]
-    [SerializeField] private PlayerMovement playerMovement;   // ✅ เพิ่มช่องอ้างอิง PlayerMovement
-    [SerializeField] private Rigidbody2D playerRb;             // ✅ เพิ่มช่องอ้างอิง Rigidbody2D
-    [SerializeField] private bool hardFreezePosition = true;   // ✅ หยุดแรงฟิสิกส์ด้วย (optional)
+    [Tooltip("สคริปต์ควบคุมการเคลื่อนไหวของ Player เช่น PlayerMovement")]
+    [SerializeField] private MonoBehaviour[] movementScriptsToDisable;
+
+    [Tooltip("Rigidbody2D ของ Player (ถ้ามี)")]
+    [SerializeField] private Rigidbody2D playerRb;
+
+    [Tooltip("ถ้าเปิด จะ Freeze ตำแหน่ง Player ทั้งหมดระหว่างคุย")]
+    [SerializeField] private bool hardFreezePosition = true;
 
     private int index = 0;
-    private bool isLocked = false;
 
     void Start()
     {
@@ -29,14 +36,21 @@ public class DialogueUI : MonoBehaviour
         nextButton.onClick.AddListener(NextLine);
     }
 
+    // Overload 1: แบบเดิม (backward compatible)
     public void StartDialogue(DialogueData newDialogue)
     {
+        StartDialogue(newDialogue, null);
+    }
+
+    // Overload 2: แบบใหม่ (รับ NPC movement data)
+    public void StartDialogue(DialogueData newDialogue, NpcMovementData npcMovement)
+    {
         dialogue = newDialogue;
+        currentNpcMovement = npcMovement; // เก็บข้อมูล NPC movement
         index = 0;
         panel.SetActive(true);
 
-        // 🔒 ล็อกการเคลื่อนไหว
-        LockPlayer(true);
+        LockPlayer(true); // 🔒 ล็อกขา
 
         ShowLine();
     }
@@ -67,25 +81,62 @@ public class DialogueUI : MonoBehaviour
     void EndDialogue()
     {
         panel.SetActive(false);
+        LockPlayer(false); // 🔓 ปลดล็อกขา
 
-        // 🔓 ปลดล็อกเมื่อคุยจบ
-        LockPlayer(false);
+        // ใช้ข้อมูล NPC movement ที่ส่งมาจาก Trigger (ถ้ามี)
+        if (currentNpcMovement != null && currentNpcMovement.npcTransform != null)
+        {
+            var npcController = currentNpcMovement.npcTransform.GetComponent<NpcController>();
+            if (npcController == null)
+            {
+                npcController = currentNpcMovement.npcTransform.gameObject.AddComponent<NpcController>();
+            }
+            npcController.StartMovement(currentNpcMovement);
+            currentNpcMovement = null; // ล้างข้อมูลหลังใช้งาน
+        }
+        // ถ้าไม่มี ให้ลองใช้จาก DialogueData แทน (วิธีเก่า)
+        else if (dialogue != null && dialogue.npcMovement != null && dialogue.npcMovement.npcTransform != null)
+        {
+            var npcController = dialogue.npcMovement.npcTransform.GetComponent<NpcController>();
+            if (npcController == null)
+            {
+                npcController = dialogue.npcMovement.npcTransform.gameObject.AddComponent<NpcController>();
+            }
+            npcController.StartMovement(dialogue.npcMovement);
+        }
     }
 
-    // 💡 ฟังก์ชันล็อกและปลดล็อกการเคลื่อนไหวของ Player
-    void LockPlayer(bool lockIt)
+    // 🔧 ฟังก์ชันล็อก/ปลดล็อก Player
+    private void LockPlayer(bool state)
     {
-        if (playerMovement != null)
-            playerMovement.enabled = !lockIt;
-
-        if (playerRb != null && hardFreezePosition)
+        // ปิด/เปิดสคริปต์ควบคุมการเดิน
+        if (movementScriptsToDisable != null)
         {
-            if (lockIt)
-                playerRb.constraints = RigidbodyConstraints2D.FreezeAll;
-            else
-                playerRb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            foreach (var script in movementScriptsToDisable)
+            {
+                if (script != null)
+                    script.enabled = !state;
+            }
         }
 
-        isLocked = lockIt;
+        // ถ้ามี Rigidbody ให้ Freeze ไว้
+        if (playerRb != null)
+        {
+            if (hardFreezePosition)
+            {
+                playerRb.constraints = state
+                    ? RigidbodyConstraints2D.FreezeAll
+                    : RigidbodyConstraints2D.FreezeRotation;
+            }
+
+            // หยุดความเร็วทันที
+            if (state) playerRb.linearVelocity = Vector2.zero;
+        }
+
+        // ถ้ามีฟังก์ชัน SetCanMove ใน PlayerMovement → เรียกด้วย
+        if (playerRb != null)
+        {
+            playerRb.gameObject.SendMessage("SetCanMove", !state, SendMessageOptions.DontRequireReceiver);
+        }
     }
 }

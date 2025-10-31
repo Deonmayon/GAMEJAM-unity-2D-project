@@ -16,16 +16,12 @@ public class DialogueUI : MonoBehaviour
     public DialogueData dialogue;
 
     [Header("Lock Player While Talking")]
-    [Tooltip("สคริปต์ควบคุมการเคลื่อนไหวของ Player เช่น PlayerMovement")]
-    [SerializeField] private MonoBehaviour[] movementScriptsToDisable;
-
-    [Tooltip("Rigidbody2D ของ Player (ถ้ามี)")]
-    [SerializeField] private Rigidbody2D playerRb;
-
-    [Tooltip("ถ้าเปิด จะ Freeze ตำแหน่ง Player ทั้งหมดระหว่างคุย")]
-    [SerializeField] private bool hardFreezePosition = true;
+    [SerializeField] private PlayerMovement playerMovement;   // ✅ เพิ่มช่องอ้างอิง PlayerMovement
+    [SerializeField] private Rigidbody2D playerRb;             // ✅ เพิ่มช่องอ้างอิง Rigidbody2D
+    [SerializeField] private bool hardFreezePosition = true;   // ✅ หยุดแรงฟิสิกส์ด้วย (optional)
 
     private int index = 0;
+    private bool isLocked = false;
 
     void Start()
     {
@@ -39,7 +35,8 @@ public class DialogueUI : MonoBehaviour
         index = 0;
         panel.SetActive(true);
 
-        LockPlayer(true); // 🔒 ล็อกขา
+        // 🔒 ล็อกการเคลื่อนไหว
+        LockPlayer(true);
 
         ShowLine();
     }
@@ -70,20 +67,23 @@ public class DialogueUI : MonoBehaviour
     void EndDialogue()
     {
         panel.SetActive(false);
-        LockPlayer(false); // 🔓 ปลดล็อกขา
+
+        // 🔓 ปลดล็อกเมื่อคุยจบ
+        LockPlayer(false);
     }
 
-    // 🔧 ฟังก์ชันล็อก/ปลดล็อก Player
-    private void LockPlayer(bool state)
+    // 💡 ฟังก์ชันล็อกและปลดล็อกการเคลื่อนไหวของ Player
+    void LockPlayer(bool lockIt)
     {
-        // ปิด/เปิดสคริปต์ควบคุมการเดิน
-        if (movementScriptsToDisable != null)
+        if (playerMovement != null)
+            playerMovement.enabled = !lockIt;
+
+        if (playerRb != null && hardFreezePosition)
         {
-            foreach (var script in movementScriptsToDisable)
-            {
-                if (script != null)
-                    script.enabled = !state;
-            }
+            if (lockIt)
+                playerRb.constraints = RigidbodyConstraints2D.FreezeAll;
+            else
+                playerRb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
 
         // ถ้ามี Rigidbody ให้ Freeze ไว้

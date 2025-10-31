@@ -14,11 +14,32 @@ public class PlayerMovement : MonoBehaviour
     public Vector2 flashlightOffsetRight = new Vector2(0.5f, 0);
     public Vector2 flashlightOffsetLeft = new Vector2(-0.5f, 0);
 
+    [Header("Footstep Audio Settings")]
+    public AudioSource footstepAudioSource;
+    public AudioClip footstepSound;
+    [Range(0.1f, 2f)]
+    public float walkFootstepInterval = 0.5f;
+    [Range(0.1f, 2f)]
+    public float runFootstepInterval = 0.3f;
+    [Range(0.5f, 1.5f)]
+    public float walkPitch = 1f;
+    [Range(0.5f, 1.5f)]
+    public float runPitch = 1.2f;
+    
+    [Range(0f, 1f)]
+    public float minVolume = 0.6f;  // ความดังต่ำสุด
+    [Range(0f, 1f)]
+    public float maxVolume = 1f;    // ความดังสูงสุด
+
+    private float footstepTimer = 0f;
+    private bool wasMovingLastFrame = false;
+
     private PlayerStamina playerStamina;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
     private float moveInput;
     private bool isRunning;
+    private Animator animator;
 
     // Property สำหรับให้ script อื่นเช็คว่ากำลังวิ่งอยู่หรือไม่
     public bool IsRunning => isRunning;
@@ -29,6 +50,9 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         playerStamina = GetComponent<PlayerStamina>();
+
+
+        animator = GetComponent<Animator>();
 
         if (flashlightTransform != null)
         {
@@ -44,6 +68,15 @@ public class PlayerMovement : MonoBehaviour
                 flashlightTransform.rotation = Quaternion.Euler(0, 0, 270);
             }
         }
+
+        if (footstepAudioSource == null)
+        {
+            footstepAudioSource = gameObject.AddComponent<AudioSource>();
+            footstepAudioSource.playOnAwake = false;
+            footstepAudioSource.loop = false;
+            Debug.LogWarning("สร้าง AudioSource สำหรับเสียงเท้าอัตโนมัติ");
+        }
+
     }
 
     void Update()
@@ -62,8 +95,11 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // เช็คว่ากด Shift หรือไม่ (สำหรับวิ่ง)
-        isRunning = Keyboard.current.leftShiftKey.isPressed &&
-                    (playerStamina == null || playerStamina.CanRun);
+        //isRunning = Keyboard.current.leftShiftKey.isPressed &&
+        //            (playerStamina == null || playerStamina.CanRun);
+
+        bool isMoving = Mathf.Abs(moveInput) > 0.1f;
+        isRunning = Keyboard.current.leftShiftKey.isPressed && isMoving;
 
         if (moveInput > 0)
         {
@@ -83,6 +119,38 @@ public class PlayerMovement : MonoBehaviour
                 flashlightTransform.rotation = Quaternion.Euler(0, 0, 90); // หมุนไปทางซ้าย
             }
         }
+
+        //// 🔹(ของใหม่) ส่วนควบคุม Animation — เพิ่มแทนที่ของเก่า
+        //if (animator != null)
+        //{
+        //    animator.SetBool("isRunning", isRunning); // ← เพิ่มบรรทัดนี้แทนทั้งหมดในส่วน Animator เก่า
+        //}
+        //float currentSpeed = isRunning ? runSpeed : 0f; // ไม่กด = หยุด
+        //rb.linearVelocity = new Vector2(moveInput * currentSpeed, rb.linearVelocity.y);
+        // ควบคุม Animation
+        if (animator != null)
+        {
+            animator.SetBool("isRunning", isMoving);
+
+            if (isMoving && isRunning)
+            {
+                animator.speed = 3f; // กด Shift = เร็วขึ้น
+            }
+            else if (isMoving)
+            {
+                animator.speed = 1f; // ความเร็วปกติ
+            }
+            else
+            {
+                animator.speed = 1f;
+            }
+        }
+
+        float currentSpeed = isRunning ? runSpeed : walkSpeed;
+        rb.linearVelocity = new Vector2(moveInput * currentSpeed, rb.linearVelocity.y);
+
+
+
     }
 
     void FixedUpdate()
@@ -90,5 +158,25 @@ public class PlayerMovement : MonoBehaviour
         // เลือกความเร็วตามว่ากำลังวิ่งหรือเดิน
         float currentSpeed = isRunning ? runSpeed : walkSpeed;
         rb.linearVelocity = new Vector2(moveInput * currentSpeed, rb.linearVelocity.y);
+    }
+
+    public void PlayFootstepSound(float pitch)
+    {
+        if (footstepAudioSource != null && footstepSound != null && IsMoving)
+        {
+            float currentPitch = isRunning ? runPitch : walkPitch;
+            footstepAudioSource.pitch = currentPitch;
+            footstepAudioSource.volume = Random.Range(minVolume, maxVolume);
+            footstepAudioSource.PlayOneShot(footstepSound);
+        }
+    }
+
+    public void StopFootstepSound()
+    {
+        if (footstepAudioSource != null && footstepAudioSource.isPlaying)
+        {
+            footstepAudioSource.Stop();
+        }
+        footstepTimer = 0f;
     }
 }

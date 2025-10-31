@@ -22,6 +22,7 @@ public class PlayerInteract : MonoBehaviour
     public AudioSource interactAudioSource;  // AudioSource สำหรับเสียงโต้ตอบ
     public AudioClip hideSound;              // เสียงเข้าตู้
     public AudioClip unhideSound;            // เสียงออกจากตู้
+    public AudioClip doorOpenSound;
 
     // --- (ของใหม่) UI Item Info ---
     [Header("Item Info UI")]
@@ -143,8 +144,8 @@ public class PlayerInteract : MonoBehaviour
         // 1. (ของใหม่) ถ้ากำลังแสดง UI Item Info, จะรับอินพุตแค่คลิกซ้าย
         if (isDisplayingItemInfo)
         {
-            // ตรวจสอบการคลิกซ้าย
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            // vvv (นี่คือบรรทัดที่แก้ไขแล้ว) vvv
+            if (Keyboard.current.eKey.wasPressedThisFrame)
             {
                 HideItemInfo(); // ซ่อน UI
             }
@@ -320,21 +321,41 @@ public class PlayerInteract : MonoBehaviour
     // --- (ของเดิม) Coroutine สำหรับ WarpTransition ---
     IEnumerator WarpTransition(Interactable door)
     {
+        // --- 1. หยุดผู้เล่นและเริ่ม Fade Out ---
         playerMovement.enabled = false;
+        PlaySound(doorOpenSound); // Devnine
         if (fadeAnimator != null)
         {
             fadeAnimator.SetTrigger("StartFadeOut");
         }
+
+        // --- 2. รอจนกว่าจอจะมืด ---
         yield return new WaitForSeconds(fadeDuration);
 
-        WarpPlayer(door); // เรียกฟังก์ชันวาร์ปเดิม
+        // --- 3. ทำการวาร์ป (ในขณะที่จอมืด) ---
+        WarpPlayer(door); // (ผู้เล่นวาร์ปไปตำแหน่งใหม่แล้ว)
 
+        // --- 4. เริ่ม Fade In ---
         if (fadeAnimator != null)
         {
             fadeAnimator.SetTrigger("StartFadeIn");
         }
-        yield return new WaitForSeconds(fadeDuration);
 
+        // vvv (ของใหม่) บังคับให้ Trigger ทำงานอีกครั้ง vvv
+        // นี่คือการ "Re-trigger" โซนที่เราวาร์ปไปถึง
+        Collider2D playerCollider = GetComponent<Collider2D>();
+        if (playerCollider != null)
+        {
+            playerCollider.enabled = false; // ปิด
+            yield return null; // (สำคัญมาก) รอ 1 เฟรม
+            playerCollider.enabled = true; // เปิด
+        }
+        // ^^^ จบส่วนของใหม่ ^^^
+
+        // --- 5. รอจนกว่าจอจะสว่าง ---
+        yield return new WaitForSeconds(fadeDuration); // (ย้ายบรรทัดนี้มาไว้หลังโค้ดใหม่)
+
+        // --- 6. คืนการควบคุมให้ผู้เล่น ---
         playerMovement.enabled = true;
     }
 

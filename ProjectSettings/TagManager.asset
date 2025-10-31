@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Locker
   - Enemy
+  - NPC
   layers:
   - Default
   - TransparentFX

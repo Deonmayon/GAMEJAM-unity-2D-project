@@ -6,7 +6,8 @@ public enum InteractionType
     Collectable, // ของเก็บได้
     Hideable,    // ที่ซ่อนตัว
     Door,       // ประตูวาร์ป
-    KeypadDoor // <-- เพิ่มอันนี้
+    KeypadDoor, // <-- เพิ่มอันนี้
+    KeypadCollectible // <-- เพิ่มอันนี้
     // Switch (เผื่ออนาคต)
 }
 

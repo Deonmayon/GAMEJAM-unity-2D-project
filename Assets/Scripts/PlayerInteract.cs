@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Collections;
 using TMPro; // 1. (ของใหม่) ต้องเพิ่มบรรทัดนี้สำหรับ TextMeshPro
+using UnityEngine.UI; // 1. (ของใหม่) ต้องเพิ่มบรรทัดนี้สำหรับ Image
 
 public class PlayerInteract : MonoBehaviour
 {
@@ -17,6 +18,7 @@ public class PlayerInteract : MonoBehaviour
     private bool isFlashlightOn = false;
     public GameObject flashlightObject;
 
+
     // --- (ของใหม่) Audio Settings ---
     [Header("Audio Settings")]
     public AudioSource interactAudioSource;  // AudioSource สำหรับเสียงโต้ตอบ
@@ -29,6 +31,9 @@ public class PlayerInteract : MonoBehaviour
     public GameObject itemInfoPanel;
     [Tooltip("ลาก Text (TextMeshPro) ที่ใช้แสดงข้อความมาใส่")]
     public TextMeshProUGUI itemInfoText;
+
+    public Image itemInfoImage; // 2. (ลาก ItemInfoImage (UI) มาใส่)
+
     private bool isDisplayingItemInfo = false; // สถานะกำลังแสดง UI
 
     // --- (ของเดิม) ระบบตู้ ---
@@ -43,7 +48,11 @@ public class PlayerInteract : MonoBehaviour
     // --- (ของเดิม) Components ---
     [Header("Component References")]
     public CameraFollow mainCameraFollow;
+
+    public ItemDatabase itemDatabase; // 3. (ลาก ItemDatabase (ไฟล์) มาใส่)
+
     public KeypadController keypadController;
+    private System.Action onKeypadSuccessCallback;
     private PlayerMovement playerMovement;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
@@ -96,7 +105,8 @@ public class PlayerInteract : MonoBehaviour
 
         if (keypadController != null)
         {
-            keypadController.OnSuccess.AddListener(OnKeypadSuccess);
+            // เปลี่ยนจาก OnKeypadSuccess เป็น HandleKeypadSuccess
+            keypadController.OnSuccess.AddListener(HandleKeypadSuccess);
             keypadController.OnClose.AddListener(OnKeypadClose);
         }
     }
@@ -205,6 +215,11 @@ public class PlayerInteract : MonoBehaviour
             case InteractionType.KeypadDoor:
                 CheckKeypadDoor(currentInteractable);
                 break;
+
+            // vvv (ของใหม่) vvv
+            case InteractionType.KeypadCollectible:
+                CheckKeypadCollectible(currentInteractable); // (ฟังก์ชันใหม่)
+                break;
         }
     }
 
@@ -214,6 +229,8 @@ public class PlayerInteract : MonoBehaviour
         // 1. หยุดผู้เล่น
         playerMovement.enabled = false;
         rb.linearVelocity = Vector2.zero; // <--- หยุดการไถลทันที
+
+        ItemData collectedData = itemDatabase.GetItemDataByID(item.itemID);
 
         if (item.isLockedByPrerequisite && !inventory.Contains(item.requiredItemID))
         {
@@ -253,16 +270,29 @@ public class PlayerInteract : MonoBehaviour
         currentInteractable = null;
 
         // 4. แสดง UI Item Info
-        if (itemInfoPanel != null && itemInfoText != null)
+        if (itemInfoPanel != null)
         {
-            itemInfoText.text = item.itemDescription; // ใส่ข้อความจาก Interactable
-            itemInfoPanel.SetActive(true);
-            itemInfoText.gameObject.SetActive(true);
-            isDisplayingItemInfo = true; // ตั้งค่าสถานะว่ากำลังแสดง UI
+            isDisplayingItemInfo = true;
+            itemInfoPanel.SetActive(true); // เปิดพื้นหลัง
+
+            // 6a. (ใหม่) ถ้าตั้งค่าให้ "โชว์รูปภาพ"
+            if (item.showImageOnlyInInfoUI && collectedData != null && itemInfoImage != null)
+            {
+                itemInfoImage.sprite = collectedData.itemIcon; // ใช้ไอคอนจาก Database
+                itemInfoImage.gameObject.SetActive(true); // โชว์รูป
+                itemInfoText.gameObject.SetActive(false); // ซ่อน Text
+            }
+            // 6b. (เดิม) ถ้าโชว์ Text (ค่าเริ่มต้น)
+            else if (itemInfoText != null)
+            {
+                itemInfoText.text = item.itemDescription; // ใช้ Description จาก Interactable
+                itemInfoText.gameObject.SetActive(true); // โชว์ Text
+                if (itemInfoImage != null) { itemInfoImage.gameObject.SetActive(false); } // ซ่อนรูป
+            }
         }
         else
         {
-            // ถ้า UI ไม่พร้อม ก็คืนการควบคุมผู้เล่นเลย
+            // ถ้าไม่มี UI Panel ก็คืนการควบคุมเลย
             Debug.LogWarning("Item Info UI ไม่ได้ถูกตั้งค่าใน PlayerInteract!");
             playerMovement.enabled = true;
         }
@@ -289,6 +319,7 @@ public class PlayerInteract : MonoBehaviour
         {
             itemInfoText.gameObject.SetActive(false);
         }
+
         isDisplayingItemInfo = false; // ตั้งค่าสถานะว่า UI ปิดแล้ว
     }
 
@@ -470,35 +501,74 @@ public class PlayerInteract : MonoBehaviour
 
     void CheckKeypadDoor(Interactable door)
     {
-        // 1. ถ้าประตูปลดล็อกแล้ว ก็วาร์ปเลย
         if (!door.isLocked)
         {
             StartCoroutine(WarpTransition(door));
         }
-        // 2. ถ้ายังล็อกอยู่ ให้เปิด Keypad
         else
         {
             Debug.Log("ประตูนี้ต้องใช้รหัส");
-            playerMovement.enabled = false; // หยุดผู้เล่น
+            playerMovement.enabled = false;
+
+            // (อัปเกรด) "บันทึก" ว่าถ้าสำเร็จ ให้ *ปลดล็อกและวาร์ป*
+            onKeypadSuccessCallback = () => {
+                Debug.Log("Callback: ปลดล็อกประตูและวาร์ป");
+                door.Unlock();
+                StartCoroutine(WarpTransition(door)); // <--- เพิ่มบรรทัดนี้
+            };
+
             keypadController.ShowKeypad(door.correctPassword);
         }
     }
 
-    // 3. ฟังก์ชันนี้จะถูกเรียกโดย Event "OnSuccess"
-    void OnKeypadSuccess()
+    // --- (ของใหม่) ฟังก์ชันสำหรับไอเทมติดรหัส ---
+    void CheckKeypadCollectible(Interactable item)
+    {
+        // 1. ถ้าปลดล็อกแล้ว ก็เก็บเลย
+        if (!item.isLocked)
+        {
+            StartCoroutine(CollectItemProcess(item));
+        }
+        // 2. ถ้ายังล็อกอยู่ ให้เปิด Keypad
+        else
+        {
+            Debug.Log("ไอเทมนี้ต้องใช้รหัส");
+            playerMovement.enabled = false;
+
+            // (อัปเกรด) "บันทึก" ว่าถ้าสำเร็จ ให้ *ปลดล็อกและเก็บ* ทันที
+            onKeypadSuccessCallback = () => {
+                Debug.Log("Callback: ปลดล็อกและเก็บไอเทม");
+                item.Unlock();
+                StartCoroutine(CollectItemProcess(item));
+            };
+
+            keypadController.ShowKeypad(item.correctPassword);
+        }
+    }
+
+    // --- (ของใหม่) ฟังก์ชัน Handler กลาง ---
+    // ฟังก์ชันนี้จะถูกเรียกโดย Event "OnSuccess"
+    void HandleKeypadSuccess()
     {
         Debug.Log("PlayerInteract: ได้รับ Event สำเร็จ!");
-        if (currentInteractable != null && currentInteractable.type == InteractionType.KeypadDoor)
+
+        if (onKeypadSuccessCallback != null)
         {
-            currentInteractable.Unlock(); // ปลดล็อกประตู
+            onKeypadSuccessCallback.Invoke(); // เรียก Coroutine (Warp/Collect)
         }
-        playerMovement.enabled = true; // คืนการควบคุม
+
+        onKeypadSuccessCallback = null;
+
+        // playerMovement.enabled = true; // <--- ลบบรรทัดนี้ทิ้ง
+        // (เราจะให้ Coroutine เป็นคนคืนการควบคุมเอง)
     }
+
 
     // 4. ฟังก์ชันนี้จะถูกเรียกโดย Event "OnClose"
     void OnKeypadClose()
     {
         Debug.Log("PlayerInteract: ได้รับ Event ปิด!");
+        onKeypadSuccessCallback = null; // เคลียร์ Callback (เผื่อกดปิดเอง)
         playerMovement.enabled = true; // คืนการควบคุม
     }
 

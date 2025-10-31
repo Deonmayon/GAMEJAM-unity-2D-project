@@ -97,7 +97,7 @@ public class DialogueUI : MonoBehaviour
             }
 
             // หยุดความเร็วทันที
-            if (state) playerRb.velocity = Vector2.zero;
+            if (state) playerRb.linearVelocity = Vector2.zero;
         }
 
         // ถ้ามีฟังก์ชัน SetCanMove ใน PlayerMovement → เรียกด้วย

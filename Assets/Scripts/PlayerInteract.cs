@@ -34,6 +34,9 @@ public class PlayerInteract : MonoBehaviour
 
     public Image itemInfoImage; // 2. (ลาก ItemInfoImage (UI) มาใส่)
 
+    [Header("End Game UI")]
+    public GameObject endGameUIPanel;
+
     private bool isDisplayingItemInfo = false; // สถานะกำลังแสดง UI
 
     // --- (ของเดิม) ระบบตู้ ---
@@ -108,6 +111,10 @@ public class PlayerInteract : MonoBehaviour
             // เปลี่ยนจาก OnKeypadSuccess เป็น HandleKeypadSuccess
             keypadController.OnSuccess.AddListener(HandleKeypadSuccess);
             keypadController.OnClose.AddListener(OnKeypadClose);
+        }
+        if (endGameUIPanel != null)
+        {
+            endGameUIPanel.SetActive(false);
         }
     }
 
@@ -220,6 +227,10 @@ public class PlayerInteract : MonoBehaviour
             case InteractionType.KeypadCollectible:
                 CheckKeypadCollectible(currentInteractable); // (ฟังก์ชันใหม่)
                 break;
+
+            case InteractionType.EndGameDoor:
+                CheckEndGameDoor(currentInteractable);
+                break;
         }
     }
 
@@ -263,6 +274,11 @@ public class PlayerInteract : MonoBehaviour
         else
         {
             inventory.Add(collectedItemID);
+        }
+        if (item.spawnsObjectOnCollect && item.objectToSpawn != null && item.spawnLocation != null)
+        {
+            Debug.Log("!!! กำลัง Spawn: " + item.objectToSpawn.name + " ที่ " + item.spawnLocation.name);
+            Instantiate(item.objectToSpawn, item.spawnLocation.position, Quaternion.identity);
         }
 
         // 3. ทำลายไอเทมที่พื้น
@@ -579,5 +595,59 @@ public class PlayerInteract : MonoBehaviour
         {
             interactAudioSource.PlayOneShot(clip);
         }
+    }
+    void CheckEndGameDoor(Interactable door)
+    {
+        // 1. เช็กว่าประตู "ล็อกอยู่" หรือไม่
+        if (door.isLocked)
+        {
+            // 2. ถ้าล็อกอยู่, เช็กว่ามีกุญแจที่ถูกต้องไหม
+            if (inventory.Contains(door.requiredKeyID))
+            {
+                Debug.Log("ใช้กุญแจไขประตูทางออก! จบเกม!");
+                door.Unlock(); // ปลดล็อก
+
+                // เรียกฟังก์ชันจบเกม (ด้านล่าง)
+                TriggerGameEnd(door);
+            }
+            else
+            {
+                // 3. ถ้าไม่มีกุญแจ
+                Debug.Log("ประตูทางออกล็อกอยู่! ต้องใช้ " + door.requiredKeyID);
+                if (door.lockedPrompt != null)
+                {
+                    door.lockedPrompt.SetActive(true); // โชว์ "ล็อกอยู่"
+                }
+            }
+        }
+        else
+        {
+            // 4. ถ้าประตู "ไม่ได้ล็อก" (เช่น ปลดล็อกไปแล้ว)
+            Debug.Log("ประตูเปิดอยู่ จบเกม!");
+            TriggerGameEnd(door);
+        }
+    }
+
+    // --- (ของใหม่) ฟังก์ชันสำหรับแสดง UI จบเกม ---
+    void TriggerGameEnd(Interactable door)
+    {
+        // 1. หยุดผู้เล่น
+        playerMovement.enabled = false;
+        rb.linearVelocity = Vector2.zero;
+
+        // 2. (ทางเลือก) ซ่อน UI ปุ่ม "E"
+        if (door.interactPrompt != null)
+        {
+            door.interactPrompt.SetActive(false);
+        }
+
+        // 3. แสดง UI จบเกม
+        if (endGameUIPanel != null)
+        {
+            endGameUIPanel.SetActive(true);
+        }
+
+        // (ทางเลือก) หยุดเวลาในเกม
+        // Time.timeScale = 0f;
     }
 }

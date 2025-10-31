@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic; // (ต้องมีอันนี้)
 
 // 1. (ของใหม่) เพิ่ม "Door" เข้าไปใน enum
 public enum InteractionType
@@ -8,7 +9,17 @@ public enum InteractionType
     Door,       // ประตูวาร์ป
     KeypadDoor, // <-- เพิ่มอันนี้
     KeypadCollectible, // <-- เพิ่มอันนี้
-    EndGameDoor // <-- (1) เพิ่มอันนี้
+    EndGameDoor, // <-- (1) เพิ่มอันนี้
+    NPC
+}
+
+[System.Serializable] // ทำให้มันโชว์ใน Inspector
+public class SpawnInfo
+{
+    [Tooltip("Prefab ของ Object ที่จะให้ Spawn")]
+    public GameObject objectToSpawn;
+    [Tooltip("ตำแหน่งที่จะให้ Spawn")]
+    public Transform spawnLocation;
 }
 
 public class Interactable : MonoBehaviour
@@ -35,10 +46,8 @@ public class Interactable : MonoBehaviour
     [Header("Spawning Settings (if Collectable)")]
     [Tooltip("ติ๊กถูก ถ้าอยากให้ไอเทมนี้ Spawn อะไรบางอย่างตอนเก็บ")]
     public bool spawnsObjectOnCollect = false;
-    [Tooltip("Prefab ของ Object ที่จะให้ Spawn (ลาก Prefab ศัตรูมาใส่)")]
-    public GameObject objectToSpawn;
-    [Tooltip("ตำแหน่งที่จะให้ Spawn (ลาก GameObject ว่างๆ ในฉากมาใส่)")]
-    public Transform spawnLocation;
+    [Tooltip("ลิสต์ของ Object ที่จะ Spawn (ใส่ได้ 1, 2, หรือ 10 อัน)")]
+    public List<SpawnInfo> spawnList;
     // ^^^ จบส่วนของใหม่ ^^^
 
     // 2. (ของใหม่) เพิ่ม Header และตัวแปรสำหรับประตู
@@ -60,6 +69,46 @@ public class Interactable : MonoBehaviour
     [Header("UI Prompt")]
     public GameObject interactPrompt;
     public GameObject lockedPrompt; // (อันใหม่)
+
+
+    // สำหรับ Dialogue //
+    [Header("NPC Settings (if NPC)")]
+    [Tooltip("ลากไฟล์ ScriptableObject (DialogueData) ที่จะให้ NPC นี้พูดมาใส่")]
+    public DialogueData dialogueToTrigger;
+    // vvv (ของใหม่) เพิ่ม Header นี้ทั้งหมด vvv
+    [Header("🚶 NPC Movement After Dialogue (Optional)")]
+    [Tooltip("ติ๊กถูก ถ้าต้องการให้ NPC นี้เดินไปหลังคุยจบ")]
+    [SerializeField] private bool enableNpcMovement = false;
+
+    [Tooltip("Transform ของ NPC (ลากตัว NPC เองมาใส่)")]
+    [SerializeField] private Transform npcTransform;
+
+    [Tooltip("จุดหมายที่ NPC จะเดินไป (ลาก GameObject ว่างๆ มาใส่)")]
+    [SerializeField] private Transform destinationTransform;
+
+    [SerializeField] private float npcMoveSpeed = 3f;
+    [SerializeField] private float arrivalDistance = 0.1f;
+    [SerializeField] private bool disappearOnArrival = true;
+    [SerializeField] private float disappearDelay = 0.5f;
+    [Tooltip("ติ๊กถูก ถ้าต้องการให้ NPC นี้คุยได้แค่ครั้งเดียว")]
+    public bool triggerOnce = true;
+
+    // (เพิ่ม) Hideable Settings (แก้ Error CS1061)
+    [Header("Hideable Settings (if Hideable)")]
+    public Transform hideSpot; // <-- (แก้ Error CS1061)
+
+    // vvv (ของใหม่) เพิ่ม 3 บรรทัดนี้ vvv
+    [Header("NPC Auto-Interact Settings (Optional)")]
+    [Tooltip("ติ๊กถูก ถ้าต้องการให้ผู้เล่นเดินไปหา NPC อัตโนมัติ (ไม่ต้องกด E)")]
+    public bool triggerOnEnter = false;
+    [Tooltip("ตำแหน่งที่ Player จะเดินไปยืนคุย (ลาก GameObject ว่างๆ มาใส่)")]
+    public Transform playerWalkTarget;
+    [Tooltip("ความเร็วที่ Player จะเดินไปหา")]
+    public float autoWalkSpeed = 3f;
+    [Tooltip("ระยะห่างที่ Player จะหยุด")]
+    public float autoWalkStopDistance = 1f;
+    // ^^^ จบส่วนของใหม่ ^^^
+
 
     void Start()
     {

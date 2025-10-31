@@ -59,15 +59,21 @@ public class PlayerInteract : MonoBehaviour
     private PlayerMovement playerMovement;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
-    
+
+    private Coroutine autoWalkCoroutine; // 1. ตัวแปรกัน Coroutine ชนกัน
+    private Animator anim; // 2. ตัวแปร Animator (สำหรับท่าเดิน)
+
     // Reference to the QTE manager (can be assigned in Inspector). If not set, we auto-find it in Start().
     public QTEManager qteManager;
+    public DialogueUI dialogueUI;
 
     void Start()
     {
         playerMovement = GetComponent<PlayerMovement>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
+
+        anim = GetComponent<Animator>(); // 3. ดึง Animator ของ Player
 
         // Auto-assign QTEManager if it wasn't set in the Inspector
         if (qteManager == null)
@@ -78,7 +84,12 @@ public class PlayerInteract : MonoBehaviour
                 Debug.Log("QTEManager auto-assigned in PlayerInteract: " + qteManager.gameObject.name);
             }
         }
-        
+
+        if (dialogueUI == null)
+        {
+            Debug.LogWarning("ยังไม่ได้ลาก DialogueUI มาใส่ PlayerInteract!");
+        }
+
         // --- (ของใหม่) ตั้งค่าสถานะไฟฉายเริ่มต้น ---
         hasFlashlight = false;
         isFlashlightOn = false;
@@ -122,17 +133,22 @@ public class PlayerInteract : MonoBehaviour
     void OnTriggerEnter2D(Collider2D other)
     {
         Interactable interactable = other.GetComponent<Interactable>();
-        if (interactable != null)
+
+        // (เช็กว่าเจอ, เปิดอยู่, และไม่ใช่ตัวเดียวกับที่คุยค้างไว้)
+        if (interactable != null && interactable.enabled && interactable != currentInteractable)
         {
-            currentInteractable = interactable;
-            Debug.Log("อยู่ใกล้วัตถุ: " + interactable.type);
-            if (interactable.interactPrompt != null)
+            // (ของใหม่) เช็กว่าเป็น NPC แบบ Auto-Trigger หรือไม่
+            if (interactable.type == InteractionType.NPC && interactable.triggerOnEnter && autoWalkCoroutine == null)
             {
-                interactable.interactPrompt.SetActive(true);
+                // ถ้าใช่ -> เริ่ม Coroutine เดินอัตโนมัติ
+                autoWalkCoroutine = StartCoroutine(AutoWalkAndTalk(interactable));
             }
-            if (interactable.lockedPrompt != null)
+            // (ของเดิม) ถ้าไม่ใช่ (หรือกำลัง Auto-walk อยู่) -> โชว์ปุ่ม E
+            else
             {
-                interactable.lockedPrompt.SetActive(false);
+                currentInteractable = interactable;
+                if (interactable.interactPrompt != null) { interactable.interactPrompt.SetActive(true); }
+                if (interactable.lockedPrompt != null) { interactable.lockedPrompt.SetActive(false); }
             }
         }
     }
@@ -140,17 +156,14 @@ public class PlayerInteract : MonoBehaviour
     void OnTriggerExit2D(Collider2D other)
     {
         Interactable interactable = other.GetComponent<Interactable>();
+
+        // ถ้าเราเดินออกจาก Interactable ที่เรา "จำ" ไว้ (ปุ่ม E)
         if (interactable != null && interactable == currentInteractable)
         {
-            if (interactable.interactPrompt != null)
-            {
-                interactable.interactPrompt.SetActive(false);
-            }
-            if (interactable.lockedPrompt != null)
-            {
-                interactable.lockedPrompt.SetActive(false);
-            }
-            currentInteractable = null;
+            if (interactable.interactPrompt != null) { interactable.interactPrompt.SetActive(false); }
+            if (interactable.lockedPrompt != null) { interactable.lockedPrompt.SetActive(false); }
+
+            currentInteractable = null; // ลืมมันซะ
         }
     }
 
@@ -231,6 +244,59 @@ public class PlayerInteract : MonoBehaviour
             case InteractionType.EndGameDoor:
                 CheckEndGameDoor(currentInteractable);
                 break;
+
+            case InteractionType.NPC:
+                CheckNpcDialogue(currentInteractable);
+                break;
+        }
+    }
+
+    // --- (อัปเกรด) ฟังก์ชันสำหรับเรียก Dialogue (ให้ส่ง NpcMovementData) ---
+    void CheckNpcDialogue(Interactable npc)
+    {
+        // 1. (เดิม) เช็กว่าตั้งค่าครบหรือไม่
+        if (dialogueUI == null) { /*...*/ return; }
+        if (npc.dialogueToTrigger == null) { /*...*/ return; }
+
+        // 2. (ของใหม่) ตรวจสอบว่า NPC ตัวนี้ต้องเดินหรือไม่
+        //    (เราต้อง "อ่าน" ค่า private จาก Interactable.cs)
+        //    (นี่เป็นเทคนิคขั้นสูงเล็กน้อยครับ)
+
+        bool enableMovement = (bool)npc.GetType().GetField("enableNpcMovement",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .GetValue(npc);
+
+        if (enableMovement)
+        {
+            // 3. (ของใหม่) ถ้าใช่, "สร้าง" กล่องข้อมูล
+            NpcMovementData movementData = new NpcMovementData();
+
+            // ดึงค่า Private Fields จาก Interactable.cs
+            movementData.npcTransform = (Transform)npc.GetType().GetField("npcTransform", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(npc);
+            movementData.destinationTransform = (Transform)npc.GetType().GetField("destinationTransform", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(npc);
+            movementData.moveSpeed = (float)npc.GetType().GetField("npcMoveSpeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(npc);
+            movementData.arrivalDistance = (float)npc.GetType().GetField("arrivalDistance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(npc);
+            movementData.disappearOnArrival = (bool)npc.GetType().GetField("disappearOnArrival", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(npc);
+            movementData.disappearDelay = (float)npc.GetType().GetField("disappearDelay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(npc);
+
+            // 4. (ของใหม่) เรียก DialogueUI (Overload 2)
+            dialogueUI.StartDialogue(npc.dialogueToTrigger, movementData);
+        }
+        else
+        {
+            // 5. (ของเดิม) เรียก DialogueUI (Overload 1)
+            dialogueUI.StartDialogue(npc.dialogueToTrigger);
+        }
+        if (npc.triggerOnce)
+        {
+            // 1. ซ่อนปุ่ม "E"
+            if (npc.interactPrompt != null)
+            {
+                npc.interactPrompt.SetActive(false);
+            }
+            // 2. ปิดสคริปต์ Interactable นี้ไปเลย (จะกด E ไม่ได้อีก)
+            npc.enabled = false;
+            currentInteractable = null;
         }
     }
 
@@ -275,10 +341,21 @@ public class PlayerInteract : MonoBehaviour
         {
             inventory.Add(collectedItemID);
         }
-        if (item.spawnsObjectOnCollect && item.objectToSpawn != null && item.spawnLocation != null)
+        if (item.spawnsObjectOnCollect && item.spawnList != null)
         {
-            Debug.Log("!!! กำลัง Spawn: " + item.objectToSpawn.name + " ที่ " + item.spawnLocation.name);
-            Instantiate(item.objectToSpawn, item.spawnLocation.position, Quaternion.identity);
+            // วนลูป Spawn ของทุกชิ้นในลิสต์
+            foreach (SpawnInfo spawn in item.spawnList)
+            {
+                if (spawn.objectToSpawn != null && spawn.spawnLocation != null)
+                {
+                    Debug.Log("!!! กำลัง Spawn: " + spawn.objectToSpawn.name + " ที่ " + spawn.spawnLocation.name);
+                    Instantiate(spawn.objectToSpawn, spawn.spawnLocation.position, Quaternion.identity);
+                }
+                else
+                {
+                    Debug.LogWarning("ตั้งค่า Spawn ใน " + item.name + " ไม่ครบ!");
+                }
+            }
         }
 
         // 3. ทำลายไอเทมที่พื้น
@@ -626,6 +703,55 @@ public class PlayerInteract : MonoBehaviour
             Debug.Log("ประตูเปิดอยู่ จบเกม!");
             TriggerGameEnd(door);
         }
+    }
+
+    IEnumerator AutoWalkAndTalk(Interactable npc)
+    {
+        // 1. ซ่อนปุ่ม "E" (ถ้ามี) และหยุดผู้เล่น
+        if (npc.interactPrompt != null) { npc.interactPrompt.SetActive(false); }
+        playerMovement.enabled = false;
+        rb.linearVelocity = Vector2.zero;
+
+        // 2. ดึงค่าจาก Interactable
+        Transform targetPosition = npc.playerWalkTarget;
+        float walkSpeed = npc.autoWalkSpeed;
+        float stopDistance = npc.autoWalkStopDistance;
+
+        // (เช็กเผื่อลืมตั้งค่า)
+        if (targetPosition == null)
+        {
+            Debug.LogWarning("AutoWalk NPC " + npc.name + " needs 'Player Walk Target' assigned!", npc);
+            CheckNpcDialogue(npc); // ถ้าตั้งค่าไม่ครบ ก็เริ่มคุยเลย
+            yield break;
+        }
+
+        Debug.Log("Auto-walking to " + npc.name);
+
+        // 3. ลูปเดิน
+        while (Vector2.Distance(transform.position, targetPosition.position) > stopDistance)
+        {
+            // สั่ง Animator ให้เดิน
+            if (anim != null) anim.SetFloat("Speed", walkSpeed);
+
+            // หันหน้า Player ให้ถูกทาง
+            if (targetPosition.position.x < transform.position.x)
+                spriteRenderer.flipX = true; // ไปทางซ้าย
+            else if (targetPosition.position.x > transform.position.x)
+                spriteRenderer.flipX = false; // ไปทางขวา
+
+            // เคลื่อนที่
+            transform.position = Vector2.MoveTowards(transform.position, targetPosition.position, walkSpeed * Time.deltaTime);
+            yield return null; // รอเฟรมหน้า
+        }
+
+        // 4. ถึงที่หมายแล้ว -> หยุด
+        rb.linearVelocity = Vector2.zero;
+        if (anim != null) anim.SetFloat("Speed", 0f);
+
+        // 5. เริ่ม Dialogue (ซึ่ง DialogueUI จะล็อกผู้เล่นต่อเอง)
+        CheckNpcDialogue(npc);
+
+        autoWalkCoroutine = null; // เคลียร์ Coroutine
     }
 
     // --- (ของใหม่) ฟังก์ชันสำหรับแสดง UI จบเกม ---

@@ -1,78 +1,90 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
 public class NpcController : MonoBehaviour
 {
-    private bool isMoving = false;
-
-    public void StartMovement(NpcMovementData movementData)
+    // ฟังก์ชันนี้ DialogueUI จะเรียกใช้
+    public void StartMovement(NpcMovementData data)
     {
-        if (isMoving) return;
-        StartCoroutine(MoveToDestination(movementData));
+        // (เราลบโค้ด rb.Kinematic และ col.isTrigger ที่ซ้ำซ้อนออกจากตรงนี้)
+
+        // เริ่ม Coroutine เพื่อทำการเคลื่อนที่
+        StartCoroutine(MoveToDestination(data));
     }
 
-    private IEnumerator MoveToDestination(NpcMovementData data)
+    IEnumerator MoveToDestination(NpcMovementData data)
     {
-        isMoving = true;
-
-        if (data.destinationTransform == null)
+        if (data == null || data.npcTransform == null || data.destinationTransform == null)
         {
-            Debug.LogWarning("[NpcController] No destination set!", this);
-            isMoving = false;
+            Debug.LogError("NpcMovementData ไม่สมบูรณ์!");
             yield break;
         }
 
-        // เดินไปยังจุดหมาย
-        while (Vector2.Distance(transform.position, data.destinationTransform.position) > data.arrivalDistance)
+        Debug.Log("NPC " + data.npcTransform.name + " กำลังเดินไปที่ " + data.destinationTransform.name);
+
+        // --- 1. ดึง Components จาก 'data.npcTransform' (ตัว NPC จริงๆ) ---
+        Animator anim = data.npcTransform.GetComponent<Animator>();
+        SpriteRenderer sr = data.npcTransform.GetComponent<SpriteRenderer>(); // (แคชไว้)
+        Rigidbody2D rb = data.npcTransform.GetComponent<Rigidbody2D>(); // (เปลี่ยนจาก InChildren)
+        Collider2D col = data.npcTransform.GetComponent<Collider2D>(); // (เปลี่ยนจาก InChildren)
+
+        // --- 2. ปิดฟิสิกส์/Collision (เหมือนที่คุณต้องการ) ---
+        if (rb != null)
         {
-            Vector2 direction = (data.destinationTransform.position - transform.position).normalized;
-            transform.position = Vector2.MoveTowards(
-                transform.position,
-                data.destinationTransform.position,
-                data.moveSpeed * Time.deltaTime
-            );
-
-            // หมุนหน้า NPC ไปทางที่เดิน (optional)
-            if (direction.x != 0)
-            {
-                Vector3 scale = transform.localScale;
-                scale.x = Mathf.Abs(scale.x) * Mathf.Sign(direction.x);
-                transform.localScale = scale;
-            }
-
-            yield return null;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            rb.linearVelocity = Vector2.zero; // (แก้ linearVelocity เป็น velocity)
+        }
+        if (col != null)
+        {
+            col.isTrigger = true;
         }
 
-        // ถึงจุดหมายแล้ว
-        Debug.Log($"[NpcController] {gameObject.name} reached destination!");
-
-        // ถ้าตั้งค่าให้หายไป
-        if (data.disappearOnArrival)
+        // --- 3. สั่ง Animator ให้เดิน ---
+        if (anim != null)
         {
-            yield return new WaitForSeconds(data.disappearDelay);
+            anim.SetFloat("Speed", data.moveSpeed);
+        }
 
-            // Fade out หรือ disable ทันที
-            // ถ้ามี SpriteRenderer สามารถทำ fade effect ได้
-            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        // --- 4. ลูปการเดิน ---
+        while (Vector2.Distance(data.npcTransform.position, data.destinationTransform.position) > data.arrivalDistance)
+        {
+            // (แก้ไข Flip Logic)
             if (sr != null)
             {
-                float fadeTime = 0.5f;
-                float elapsed = 0f;
-                Color originalColor = sr.color;
-
-                while (elapsed < fadeTime)
+                // ถ้าเป้าหมายอยู่ทางซ้าย (x น้อยกว่า)
+                if (data.destinationTransform.position.x < data.npcTransform.position.x)
                 {
-                    elapsed += Time.deltaTime;
-                    float alpha = Mathf.Lerp(1f, 0f, elapsed / fadeTime);
-                    sr.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
-                    yield return null;
+                    sr.flipX = false; // ให้หันซ้าย
+                }
+                // ถ้าเป้าหมายอยู่ทางขวา (x มากกว่า)
+                else if (data.destinationTransform.position.x > data.npcTransform.position.x)
+                {
+                    sr.flipX = true; // ให้หันขวา
                 }
             }
 
-            gameObject.SetActive(false);
-            Debug.Log($"[NpcController] {gameObject.name} disappeared!");
+            data.npcTransform.position = Vector2.MoveTowards(
+                data.npcTransform.position,
+                data.destinationTransform.position,
+                data.moveSpeed * Time.deltaTime
+            );
+            yield return null; // รอเฟรมถัดไป
         }
 
-        isMoving = false;
+        Debug.Log("NPC ถึงที่หมายแล้ว");
+
+        // --- 5. หยุด Animator ---
+        if (anim != null)
+        {
+            anim.SetFloat("Speed", 0f);
+        }
+
+        // --- 6. หายตัว (ถ้าตั้งค่าไว้) ---
+        if (data.disappearOnArrival)
+        {
+            yield return new WaitForSeconds(data.disappearDelay);
+            Debug.Log("NPC หายตัว");
+            data.npcTransform.gameObject.SetActive(false);
+        }
     }
 }

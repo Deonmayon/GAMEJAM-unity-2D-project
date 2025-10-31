@@ -27,6 +27,9 @@ public class Interactable : MonoBehaviour
     [Tooltip("ItemID ของไอเทมที่ต้องมีก่อน (ถ้าล็อกอยู่)")]
     public string requiredItemID;
 
+    [Tooltip("ติ๊กถูก ถ้าอยากให้โชว์ 'รูปภาพ' ของไอเทมนี้แทน 'ข้อความ' ตอนเก็บ")]
+    public bool showImageOnlyInInfoUI = false;
+
     // 2. (ของใหม่) เพิ่ม Header และตัวแปรสำหรับประตู
     [Header("Door Settings (if Door or KeypadDoor)")]
     [Tooltip("ลาก GameObject ที่เป็นเป้าหมายปลายทางมาใส่")]

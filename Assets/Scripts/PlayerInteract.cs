@@ -213,6 +213,7 @@ public class PlayerInteract : MonoBehaviour
     {
         // 1. หยุดผู้เล่น
         playerMovement.enabled = false;
+        rb.linearVelocity = Vector2.zero; // <--- หยุดการไถลทันที
 
         if (item.isLockedByPrerequisite && !inventory.Contains(item.requiredItemID))
         {
@@ -322,6 +323,9 @@ public class PlayerInteract : MonoBehaviour
     {
         // --- 1. หยุดผู้เล่นและเริ่ม Fade Out ---
         playerMovement.enabled = false;
+
+        rb.linearVelocity = Vector2.zero; // <--- หยุดการไถลทันที
+
         if (fadeAnimator != null)
         {
             fadeAnimator.SetTrigger("StartFadeOut");

@@ -86,6 +86,24 @@ public class DialogueUI : MonoBehaviour
                 playerRb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
 
-        isLocked = lockIt;
+        // ถ้ามี Rigidbody ให้ Freeze ไว้
+        if (playerRb != null)
+        {
+            if (hardFreezePosition)
+            {
+                playerRb.constraints = state
+                    ? RigidbodyConstraints2D.FreezeAll
+                    : RigidbodyConstraints2D.FreezeRotation;
+            }
+
+            // หยุดความเร็วทันที
+            if (state) playerRb.linearVelocity = Vector2.zero;
+        }
+
+        // ถ้ามีฟังก์ชัน SetCanMove ใน PlayerMovement → เรียกด้วย
+        if (playerRb != null)
+        {
+            playerRb.gameObject.SendMessage("SetCanMove", !state, SendMessageOptions.DontRequireReceiver);
+        }
     }
 }

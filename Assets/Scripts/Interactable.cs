@@ -6,8 +6,9 @@ public enum InteractionType
     Collectable, // ของเก็บได้
     Hideable,    // ที่ซ่อนตัว
     Door,       // ประตูวาร์ป
-    KeypadDoor // <-- เพิ่มอันนี้
-    // Switch (เผื่ออนาคต)
+    KeypadDoor, // <-- เพิ่มอันนี้
+    KeypadCollectible, // <-- เพิ่มอันนี้
+    EndGameDoor // <-- (1) เพิ่มอันนี้
 }
 
 public class Interactable : MonoBehaviour
@@ -26,6 +27,19 @@ public class Interactable : MonoBehaviour
     public bool isLockedByPrerequisite = false;
     [Tooltip("ItemID ของไอเทมที่ต้องมีก่อน (ถ้าล็อกอยู่)")]
     public string requiredItemID;
+
+    [Tooltip("ติ๊กถูก ถ้าอยากให้โชว์ 'รูปภาพ' ของไอเทมนี้แทน 'ข้อความ' ตอนเก็บ")]
+    public bool showImageOnlyInInfoUI = false;
+
+    // vvv (ของใหม่) เพิ่ม Header และ 3 บรรทัดนี้ vvv
+    [Header("Spawning Settings (if Collectable)")]
+    [Tooltip("ติ๊กถูก ถ้าอยากให้ไอเทมนี้ Spawn อะไรบางอย่างตอนเก็บ")]
+    public bool spawnsObjectOnCollect = false;
+    [Tooltip("Prefab ของ Object ที่จะให้ Spawn (ลาก Prefab ศัตรูมาใส่)")]
+    public GameObject objectToSpawn;
+    [Tooltip("ตำแหน่งที่จะให้ Spawn (ลาก GameObject ว่างๆ ในฉากมาใส่)")]
+    public Transform spawnLocation;
+    // ^^^ จบส่วนของใหม่ ^^^
 
     // 2. (ของใหม่) เพิ่ม Header และตัวแปรสำหรับประตู
     [Header("Door Settings (if Door or KeypadDoor)")]

@@ -39,7 +39,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private float moveInput;
     private bool isRunning;
-    private Animator animator;
+    private Animator anim; // 1. ตัวแปรสำหรับ Animator
 
     // Property สำหรับให้ script อื่นเช็คว่ากำลังวิ่งอยู่หรือไม่
     public bool IsRunning => isRunning;
@@ -51,8 +51,8 @@ public class PlayerMovement : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         playerStamina = GetComponent<PlayerStamina>();
 
-        
-        animator = GetComponent<Animator>();
+
+        anim = GetComponent<Animator>(); // 2. ดึง Component มาเก็บไว้
 
         if (flashlightTransform != null)
         {
@@ -116,7 +116,7 @@ public class PlayerMovement : MonoBehaviour
                 flashlightTransform.rotation = Quaternion.Euler(0, 0, 90); // หมุนไปทางซ้าย
             }
         }
-
+        anim.SetFloat("Speed", Mathf.Abs(moveInput));
         Animator animator = GetComponent<Animator>();
         // ← เพิ่มส่วนนี้เพื่อควบคุม Animation
         if (animator != null)

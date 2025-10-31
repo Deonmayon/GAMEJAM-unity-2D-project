@@ -14,6 +14,9 @@ public class DialogueTrigger : MonoBehaviour
     [Tooltip("ต้องออกจากโซนก่อน จึงจะทริกได้ใหม่")]
     [SerializeField] private bool requireExitBeforeRetrigger = true;
 
+    [Tooltip("ติ๊กถูก ถ้าต้องการให้ Trigger นี้ทำงานแค่ 'ครั้งเดียว' แล้วหายไปเลย")]
+    [SerializeField] private bool triggerOnceAndDisable = true;
+
     [Header("🚶 Player Auto-Walk to NPC (Optional)")]
     [Tooltip("ถ้าต้องการให้ Player เดินไปหา NPC อัตโนมัติเมื่อเข้า Trigger")]
     [SerializeField] private bool autoWalkToNpc = false;
@@ -94,6 +97,12 @@ public class DialogueTrigger : MonoBehaviour
         }
 
         triggeredWhileInside = true; // จดว่า รอบนี้ได้ทริกไปแล้วขณะอยู่วง
+
+        if (triggerOnceAndDisable)
+        {
+            // ...ก็สั่งให้ GameObject นี้ "ปิดการทำงาน" (หายไป)
+            gameObject.SetActive(false);
+        }
     }
 
     private IEnumerator WalkToNpcThenDialogue(Transform player)

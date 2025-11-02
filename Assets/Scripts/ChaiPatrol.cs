@@ -90,11 +90,11 @@ public class ChaiPatrol : MonoBehaviour
         // 7. (สำคัญ) กลับด้าน Sprite
         if (directionX > 0)
         {
-            spriteRenderer.flipX = true; // หันขวา
+            spriteRenderer.flipX = false; // หันขวา
         }
         else if (directionX < 0)
         {
-            spriteRenderer.flipX = false; // หันซ้าย
+            spriteRenderer.flipX = true; // หันซ้าย
         }
     }
 }

@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.InputSystem; // <-- (1) เพิ่มบรรทัดนี้
 /// <summary>
 /// Trigger สำหรับเริ่ม DialogueTree
 /// ใช้แทน DialogueTrigger เดิม
@@ -116,10 +116,16 @@ public class DialogueTreeTrigger : MonoBehaviour
             interactPrompt.SetActive(false);
         }
 
-        // ปิดตัวเองถ้าต้องการใช้แค่ครั้งเดียว
         if (triggerOnce)
         {
-            gameObject.SetActive(false);
+            // ซ่อนปุ่ม "E" (ถ้ามี)
+            if (interactPrompt != null)
+            {
+                interactPrompt.SetActive(false);
+            }
+
+            // ปิดการทำงานของ "สคริปต์นี้" แทนที่จะปิด "GameObject"
+            this.enabled = false;
         }
     }
 

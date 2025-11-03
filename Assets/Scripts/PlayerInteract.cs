@@ -341,19 +341,15 @@ public class PlayerInteract : MonoBehaviour
         {
             inventory.Add(collectedItemID);
         }
-        if (item.spawnsObjectOnCollect && item.spawnList != null)
+        if (item.activatesObjectsOnCollect && item.objectsToActivate != null)
         {
-            // วนลูป Spawn ของทุกชิ้นในลิสต์
-            foreach (SpawnInfo spawn in item.spawnList)
+            Debug.Log("กำลัง Activate " + item.objectsToActivate.Count + " objects...");
+            foreach (GameObject objToActivate in item.objectsToActivate)
             {
-                if (spawn.objectToSpawn != null && spawn.spawnLocation != null)
+                if (objToActivate != null)
                 {
-                    Debug.Log("!!! กำลัง Spawn: " + spawn.objectToSpawn.name + " ที่ " + spawn.spawnLocation.name);
-                    Instantiate(spawn.objectToSpawn, spawn.spawnLocation.position, Quaternion.identity);
-                }
-                else
-                {
-                    Debug.LogWarning("ตั้งค่า Spawn ใน " + item.name + " ไม่ครบ!");
+                    objToActivate.SetActive(true);
+                    Debug.Log("Activated: " + objToActivate.name);
                 }
             }
         }

@@ -13,15 +13,6 @@ public enum InteractionType
     NPC
 }
 
-[System.Serializable] // ทำให้มันโชว์ใน Inspector
-public class SpawnInfo
-{
-    [Tooltip("Prefab ของ Object ที่จะให้ Spawn")]
-    public GameObject objectToSpawn;
-    [Tooltip("ตำแหน่งที่จะให้ Spawn")]
-    public Transform spawnLocation;
-}
-
 public class Interactable : MonoBehaviour
 {
     [Header("Interaction Settings")]
@@ -29,6 +20,13 @@ public class Interactable : MonoBehaviour
 
     [Header("Item Settings (if Collectable)")]
     public string itemID;
+
+    [Header("Activation Settings (if Collectable)")]
+    [Tooltip("ติ๊กถูก ถ้าอยากให้ไอเทมนี้ 'เปิด' (SetActive) GameObject ที่มีอยู่")]
+    public bool activatesObjectsOnCollect = false;
+
+    [Tooltip("ลิสต์ของ GameObject ในฉาก ที่จะถูก SetActive(true)")]
+    public List<GameObject> objectsToActivate; // (เปลี่ยนจาก spawnList เป็นอันนี้)
 
     [Tooltip("ข้อความที่จะแสดงเมื่อเก็บไอเทมนี้ (ถ้าเป็น Collectable)")]
     [TextArea(3, 10)] // ทำให้ช่องพิมพ์ข้อความใหญ่ขึ้นใน Inspector
@@ -47,12 +45,10 @@ public class Interactable : MonoBehaviour
     [Tooltip("ติ๊กถูก ถ้าอยากให้ไอเทมนี้ Spawn อะไรบางอย่างตอนเก็บ")]
     public bool spawnsObjectOnCollect = false;
     [Tooltip("ลิสต์ของ Object ที่จะ Spawn (ใส่ได้ 1, 2, หรือ 10 อัน)")]
-    public List<SpawnInfo> spawnList;
     // ^^^ จบส่วนของใหม่ ^^^
 
     // 2. (ของใหม่) เพิ่ม Header และตัวแปรสำหรับประตู
     [Header("Door Settings (if Door or KeypadDoor)")]
-    [Tooltip("ลาก GameObject ที่เป็นเป้าหมายปลายทางมาใส่")]
     public Transform warpTarget;
 
     [Tooltip("ลาก 'LevelBounds' ของ *ฉากปลายทาง* มาใส่")]

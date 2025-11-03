@@ -32,10 +32,14 @@ public class DialogueAction
     public float volume = 1f;
 
     [Header("🚶 Movement")]
-    public Transform moveTarget; // Object ที่จะเคลื่อนที่
-    public Transform moveDestination; // ไปที่ไหน
+    [Tooltip("'ชื่อ' ของ GameObject ในฉาก ที่จะให้เคลื่อนที่ (เช่น Player หรือ NPC_May)")]
+    public string moveTargetName;
+    [Tooltip("'ชื่อ' ของ GameObject (จุดหมาย) ในฉาก ที่จะให้เดินไปหา")]
+    public string moveDestinationName;
     public float moveSpeed = 3f;
     public bool lookAtDirection = true; // หันหน้าไปทางที่เดิน
+    [Tooltip("ติ๊กถูก ถ้าต้องการให้หายตัวเมื่อเดินถึงที่หมาย")]
+    public bool disappearOnArrival = true;
 
     [Header("📹 Camera")]
     public CameraActionType cameraAction = CameraActionType.FocusOnTarget;
@@ -190,41 +194,85 @@ public class DialogueActionExecutor : MonoBehaviour
 
     IEnumerator ExecuteMovement(DialogueAction action)
     {
-        if (action.moveTarget == null || action.moveDestination == null)
+        // 1. (ของใหม่) ค้นหา GameObject จากชื่อ
+        GameObject targetObj = null;
+        if (!string.IsNullOrEmpty(action.moveTargetName))
         {
-            Debug.LogWarning("Movement target or destination not assigned");
+            targetObj = GameObject.Find(action.moveTargetName);
+        }
+
+        GameObject destObj = null;
+        if (!string.IsNullOrEmpty(action.moveDestinationName))
+        {
+            destObj = GameObject.Find(action.moveDestinationName);
+        }
+
+        // 2. (ของเดิม) เช็กว่าหาเจอไหม
+        if (targetObj == null || destObj == null)
+        {
+            Debug.LogWarning("Movement target หรือ destination not found in scene!");
             yield break;
         }
 
-        Vector3 startPos = action.moveTarget.position;
-        Vector3 targetPos = action.moveDestination.position;
+        Transform targetTransform = targetObj.transform;
+        Transform destTransform = destObj.transform;
+
+        // 3. (ของใหม่) ดึง Components ที่จำเป็น
+        Animator anim = targetTransform.GetComponent<Animator>();
+        SpriteRenderer sr = targetTransform.GetComponent<SpriteRenderer>();
+
+        // 4. (ของใหม่) สั่งให้ Animator เริ่มเดิน
+        // (ต้องแน่ใจว่า Animator Controller ของตัวละครนี้มี Parameter "Speed" (Float) นะครับ)
+        if (anim != null)
+        {
+            anim.SetFloat("Speed", action.moveSpeed);
+        }
+
+        // 5. (โค้ดเดิม) คำนวณการเดิน
+        Vector3 startPos = targetTransform.position;
+        Vector3 targetPos = destTransform.position;
         float distance = Vector3.Distance(startPos, targetPos);
+
+        // (ป้องกันการหารด้วย 0)
+        if (action.moveSpeed <= 0) action.moveSpeed = 1;
+
         float duration = distance / action.moveSpeed;
         float elapsed = 0f;
 
-        // ถ้าต้องการหันหน้าไปทางที่เดิน
-        if (action.lookAtDirection)
-        {
-            Vector3 direction = (targetPos - startPos).normalized;
-            if (direction.x != 0)
-            {
-                action.moveTarget.localScale = new Vector3(
-                    Mathf.Sign(direction.x) * Mathf.Abs(action.moveTarget.localScale.x),
-                    action.moveTarget.localScale.y,
-                    action.moveTarget.localScale.z
-                );
-            }
-        }
-
+        // 6. (โค้ดเดิม) ลูปการเดิน
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-            action.moveTarget.position = Vector3.Lerp(startPos, targetPos, t);
+            targetTransform.position = Vector3.Lerp(startPos, targetPos, t);
+
+            // 7. (อัปเกรด) แก้ไขการหันหน้า (Flip) ให้ใช้ SpriteRenderer
+            if (action.lookAtDirection && sr != null)
+            {
+                Vector3 direction = (targetPos - startPos).normalized;
+                if (direction.x > 0.01f)
+                    sr.flipX = false; // หันขวา
+                else if (direction.x < -0.01f)
+                    sr.flipX = true; // หันซ้าย
+            }
+
             yield return null;
         }
 
-        action.moveTarget.position = targetPos;
+        // 8. (โค้ดเดิม) Snap ให้อยู่ตำแหน่งเป๊ะๆ
+        targetTransform.position = targetPos;
+
+        // 9. (ของใหม่) สั่งให้ Animator หยุด (ท่า Idle)
+        if (anim != null)
+        {
+            anim.SetFloat("Speed", 0f);
+        }
+
+        // 10. (ของใหม่) สั่งให้หายตัว (ถ้าติ๊กไว้)
+        if (action.disappearOnArrival)
+        {
+            targetObj.SetActive(false);
+        }
     }
 
     IEnumerator ExecuteCameraAction(DialogueAction action)

@@ -71,7 +71,7 @@ public class DialogueChoice
     
     [Header("🔒 Requirements (Optional)")]
     [Tooltip("ต้องมีเงื่อนไขอะไรถึงจะแสดงตัวเลือกนี้? (เว้นว่างถ้าไม่มี)")]
-    public DialogueCondition requirementCondition;
+    public DialogueCondition requirementCondition = null;
 
     [Header("⚡ On Choice Selected Events")]
     [Tooltip("Actions ที่จะเล่นทันทีเมื่อเลือกตัวเลือกนี้")]
@@ -91,6 +91,10 @@ public class DialogueChoice
 [System.Serializable]
 public class DialogueCondition
 {
+    // vvv (ของใหม่) เพิ่มบรรทัดนี้ vvv
+    [Tooltip("ติ๊กถูก เพื่อเปิดใช้งานเงื่อนไขนี้ (ถ้าไม่ติ๊ก = ผ่านตลอด)")]
+    public bool enabled = false;
+    // ^^^ จบส่วนของใหม่ ^^^
     public ConditionType type = ConditionType.HasItem;
     
     [Header("Item Check")]

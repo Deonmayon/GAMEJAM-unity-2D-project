@@ -34,6 +34,7 @@ public class DialogueTreeUI : MonoBehaviour
     // Internal state
     private bool waitingForInput = false;
     private bool hasSelectedChoice = false;
+    private string currentFullText;
     private DialogueChoice selectedChoice = null;
     private Coroutine typewriterCoroutine;
     private List<GameObject> activeChoiceButtons = new List<GameObject>();
@@ -68,6 +69,8 @@ public class DialogueTreeUI : MonoBehaviour
         if (nameText != null)
             nameText.text = node.characterName;
 
+        currentFullText = node.dialogueText;
+
         // แสดงข้อความ (typewriter หรือแบบปกติ)
         if (useTypewriter)
         {
@@ -78,7 +81,7 @@ public class DialogueTreeUI : MonoBehaviour
         }
         else
         {
-            dialogueText.text = node.dialogueText;
+            dialogueText.text = currentFullText;
             typewriterComplete = true;
         }
 
@@ -164,17 +167,26 @@ public class DialogueTreeUI : MonoBehaviour
     /// <summary>
     /// เมื่อกดปุ่ม Next
     /// </summary>
-    void OnNextButtonClicked()
+    public void OnNextButtonClicked()
     {
-        // ถ้ากำลัง typewriter อยู่ ให้แสดงข้อความทั้งหมดทันที
+        // ถ้ากำลัง typewriter อยู่...
         if (typewriterCoroutine != null)
         {
+            // 1. หยุด Coroutine
             StopCoroutine(typewriterCoroutine);
-            dialogueText.text = dialogueText.text; // แสดงข้อความเต็ม
+
+            // 2. (ตัวแก้บั๊ก) แสดงข้อความเต็มทันที
+            dialogueText.text = currentFullText;
+
+            // 3. (แก้ไข) รีเซ็ตสถานะ
             typewriterCoroutine = null;
+            typewriterComplete = true;
+
+            // 4. (สำคัญ) ออกจากฟังก์ชันก่อน (ยังไม่ไป Next)
             return;
         }
 
+        // ถ้า Typewriter จบแล้ว (หรือไม่ได้ใช้) การคลิกครั้งนี้คือการ "ไปต่อ"
         waitingForInput = false;
     }
 

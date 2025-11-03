@@ -1,0 +1,238 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e69a495dfe4d44ea2f335130d47dd9, type: 3}
+  m_Name: DialogueTree_MayChai_01
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueTree
+  treeName: May_Chai Conversation01
+  description: "\u0E40\u0E21\u0E22\u0E4C\u0E04\u0E38\u0E22\u0E01\u0E31\u0E1A\u0E27\u0E31\u0E12\u0E19\u0E4C\u0E15\u0E2D\u0E19\u0E40\u0E23\u0E34\u0E48\u0E21\u0E41\u0E23\u0E01"
+  startNodeId: start
+  nodes:
+  - nodeId: start
+    nodeType: 0
+    characterName: "\u0E0A\u0E31\u0E22"
+    portrait: {fileID: 21300000, guid: fe330d2b11abd6149b2ddcc8757b6643, type: 3}
+    dialogueText: "\u0E2D\u0E38\u0E4A\u0E22!"
+    nextNodeId: Chai_01
+    actions: []
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: Chai_01
+    nodeType: 1
+    characterName: "\u0E0A\u0E31\u0E22"
+    portrait: {fileID: 21300000, guid: fe330d2b11abd6149b2ddcc8757b6643, type: 3}
+    dialogueText: "\u0E2B\u0E19\u0E39\u0E21\u0E32\u0E17\u0E33\u0E2D\u0E30\u0E44\u0E23\u0E15\u0E2D\u0E19\u0E14\u0E36\u0E01\u0E04\u0E19\u0E40\u0E14\u0E35\u0E22\u0E27\u0E40\u0E19\u0E35\u0E48\u0E22"
+    nextNodeId: 
+    actions: []
+    choices:
+    - choiceText: "\u0E2B\u0E19\u0E39\u0E21\u0E32\u0E2B\u0E32\u0E02\u0E2D\u0E07\u0E04\u0E48\u0E30"
+      targetNodeId: May_answer1
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    - choiceText: "\u0E2D\u0E4B\u0E2D\u0E44\u0E21\u0E48\u0E21\u0E35\u0E2D\u0E30\u0E44\u0E23\u0E04\u0E48\u0E30"
+      targetNodeId: May_answer2
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: May_answer1
+    nodeType: 0
+    characterName: "\u0E40\u0E21\u0E22\u0E4C"
+    portrait: {fileID: 21300000, guid: 65473d25dafc0bf409daef1ac987a401, type: 3}
+    dialogueText: "\u0E2D\u0E4B\u0E2D\u0E21\u0E32\u0E2B\u0E32\u0E02\u0E2D\u0E07\u0E04\u0E48\u0E30"
+    nextNodeId: Chai_answer1
+    actions: []
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: May_answer2
+    nodeType: 0
+    characterName: "\u0E40\u0E21\u0E22\u0E4C"
+    portrait: {fileID: 21300000, guid: 65473d25dafc0bf409daef1ac987a401, type: 3}
+    dialogueText: "\u0E2D\u0E4B\u0E2D\u0E44\u0E21\u0E48\u0E21\u0E35\u0E2D\u0E30\u0E44\u0E23\u0E04\u0E48\u0E30"
+    nextNodeId: Chai_answer2
+    actions: []
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: Chai_answer1
+    nodeType: 0
+    characterName: "\u0E0A\u0E31\u0E31\u0E22"
+    portrait: {fileID: 21300000, guid: fe330d2b11abd6149b2ddcc8757b6643, type: 3}
+    dialogueText: "\u0E2D\u0E4B\u0E2D\u0E23\u0E35\u0E1A\u0E42\u0E2D\u0E40\u0E04\u0E23\u0E35\u0E1A\u0E01\u0E25\u0E31\u0E1A\u0E19\u0E30\u0E2B\u0E19\u0E39"
+    nextNodeId: Chai_walkaway
+    actions: []
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: Chai_answer2
+    nodeType: 0
+    characterName: "\u0E0A\u0E31\u0E22"
+    portrait: {fileID: 21300000, guid: fe330d2b11abd6149b2ddcc8757b6643, type: 3}
+    dialogueText: "\u0E2D\u0E48\u0E32\u0E27\u0E2D\u0E30\u0E44\u0E23\u0E02\u0E2D\u0E07\u0E2B\u0E19\u0E39\u0E40\u0E19\u0E35\u0E48\u0E22\u0E23\u0E35\u0E1A\u0E01\u0E25\u0E31\u0E1A\u0E1A\u0E49\u0E32\u0E19\u0E44\u0E1B\u0E44\u0E14\u0E49\u0E41\u0E25\u0E49\u0E27\u0E44\u0E1B\u0E4A!"
+    nextNodeId: Chai_walkaway
+    actions: []
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: Chai_walkaway
+    nodeType: 2
+    characterName: 
+    portrait: {fileID: 0}
+    dialogueText: 
+    nextNodeId: 
+    actions:
+    - actionType: 2
+      timing: 0
+      delayBefore: 0
+      waitForCompletion: 0
+      targetAnimator: {fileID: 0}
+      animationTrigger: 
+      animationStateName: 
+      soundClip: {fileID: 0}
+      volume: 0
+      moveTargetName: Chai_NPC
+      moveDestinationName: NPC_ExitPoint
+      moveSpeed: 3
+      lookAtDirection: 0
+      disappearOnArrival: 1
+      cameraAction: 0
+      cameraTarget: {fileID: 0}
+      cameraZoom: 0
+      cameraDuration: 0
+      effectPrefab: {fileID: 0}
+      effectSpawnPoint: {fileID: 0}
+      destroyEffectOnComplete: 0
+      effectDuration: 0
+      targetObject: {fileID: 0}
+      setActive: 0
+      customEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      customEventTarget: {fileID: 0}
+      customMethodName: 
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 1
+    editorNote: 
+  lockPlayerMovement: 1
+  hideOtherUI: 0
+  variables: []

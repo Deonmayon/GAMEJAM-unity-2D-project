@@ -27,7 +27,7 @@ public class DialogueTreeManager : MonoBehaviour
     [Header("Game State (ถ้ามี GameManager)")]
     [Tooltip("ถ้ามี InventoryManager/QuestManager จะใช้เช็คเงื่อนไข")]
     public GameObject gameManagerObject;
-
+    public PlayerInteract playerInteract; // (ลาก Player มาใส่ช่องนี้)
     // Events
     public UnityEvent<DialogueTree> onDialogueStart;
     public UnityEvent<DialogueTree> onDialogueEnd;
@@ -41,6 +41,15 @@ public class DialogueTreeManager : MonoBehaviour
         {
             actionExecutor = gameObject.AddComponent<DialogueActionExecutor>();
         }
+        if (playerInteract == null)
+        {
+            playerInteract = FindObjectOfType<PlayerInteract>();
+            if (playerInteract != null)
+            {
+                Debug.Log("PlayerInteract auto-assigned in DialogueTreeManager.");
+            }
+        }
+
     }
 
     /// <summary>
@@ -181,7 +190,7 @@ public class DialogueTreeManager : MonoBehaviour
         foreach (var choice in node.choices)
         {
             // เช็คว่าตรงเงื่อนไขหรือไม่
-            if (choice.requirementCondition == null || EvaluateCondition(choice.requirementCondition))
+            if (choice.requirementCondition == null || !choice.requirementCondition.enabled || EvaluateCondition(choice.requirementCondition))
             {
                 availableChoices.Add(choice);
             }
@@ -280,7 +289,7 @@ public class DialogueTreeManager : MonoBehaviour
     /// </summary>
     bool EvaluateCondition(DialogueCondition condition)
     {
-        if (condition == null) return true;
+        if (condition == null || !condition.enabled) return true;
 
         switch (condition.type)
         {
@@ -291,9 +300,17 @@ public class DialogueTreeManager : MonoBehaviour
                 return EvaluateCustomCondition(condition);
 
             case ConditionType.HasItem:
-                // TODO: เชื่อมกับ Inventory System
-                Debug.LogWarning("HasItem condition not implemented yet");
-                return false;
+                if (playerInteract == null)
+                {
+                    Debug.LogWarning("HasItem check failed: PlayerInteract not assigned!");
+                    return false;
+                }
+                if (string.IsNullOrEmpty(condition.itemId))
+                {
+                    return false;
+                }
+                // (เช็กใน "กระเป๋า" ของ PlayerInteract)
+                return playerInteract.inventory.Contains(condition.itemId);
 
             case ConditionType.QuestStatus:
                 // TODO: เชื่อมกับ Quest System

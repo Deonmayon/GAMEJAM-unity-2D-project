@@ -1,0 +1,370 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e69a495dfe4d44ea2f335130d47dd9, type: 3}
+  m_Name: DialogueTree_MayWatt_01
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueTree
+  treeName: May_Watt Conversation01
+  description: "\u0E40\u0E21\u0E22\u0E4C\u0E04\u0E38\u0E22\u0E01\u0E31\u0E1A\u0E27\u0E31\u0E12\u0E19\u0E4C\u0E17\u0E35\u0E48\u0E17\u0E32\u0E07\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21"
+  startNodeId: start
+  nodes:
+  - nodeId: start
+    nodeType: 0
+    characterName: "\u0E40\u0E21\u0E22\u0E4C"
+    portrait: {fileID: 21300000, guid: 13922cf1a16a8e340a0e36d3c80d259b, type: 3}
+    dialogueText: "\u0E2D\u0E49\u0E48\u0E32\u0E27 \u0E2A\u0E27\u0E31\u0E2A\u0E14\u0E35\u0E04\u0E48\u0E30\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C\u0E21\u0E32\u0E17\u0E33\u0E2D\u0E30\u0E44\u0E23\u0E2B\u0E23\u0E2D\u0E04\u0E30
+      \u0E17\u0E33\u0E44\u0E21\u0E2D\u0E22\u0E39\u0E48\u0E14\u0E36\u0E01\u0E08\u0E31\u0E07"
+    nextNodeId: Watt_01
+    actions: []
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: Watt_01
+    nodeType: 0
+    characterName: "\u0E27\u0E31\u0E12\u0E19\u0E4C"
+    portrait: {fileID: 21300000, guid: fb6cfab89dce1324ea33e9e513902bb4, type: 3}
+    dialogueText: "\u0E2D\u0E30\u0E2D\u0E4B\u0E2D \u0E1E\u0E2D\u0E14\u0E35\u0E1E\u0E35\u0E48\u0E25\u0E37\u0E21\u0E02\u0E2D\u0E07\u0E44\u0E27\u0E49\u0E19\u0E48\u0E30"
+    nextNodeId: May_01
+    actions: []
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: May_01
+    nodeType: 0
+    characterName: "\u0E40\u0E21\u0E22\u0E4C"
+    portrait: {fileID: 21300000, guid: 13922cf1a16a8e340a0e36d3c80d259b, type: 3}
+    dialogueText: "\u0E2D\u0E4B\u0E2D\u0E42\u0E2D\u0E40\u0E04\u0E04\u0E48\u0E30 \u0E40\u0E14\u0E35\u0E4B\u0E22\u0E27\u0E2B\u0E19\u0E39\u0E01\u0E47\u0E08\u0E30\u0E44\u0E1B\u0E2B\u0E32\u0E02\u0E2D\u0E07\u0E40\u0E2B\u0E21\u0E37\u0E2D\u0E19\u0E01\u0E31\u0E19\u0E04\u0E48\u0E30"
+    nextNodeId: Watt_02
+    actions: []
+    choices: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: Watt_02
+    nodeType: 1
+    characterName: "\u0E27\u0E31\u0E12\u0E19\u0E4C"
+    portrait: {fileID: 21300000, guid: fb6cfab89dce1324ea33e9e513902bb4, type: 3}
+    dialogueText: "\u0E19\u0E35\u0E48\u0E1E\u0E35\u0E48\u0E27\u0E48\u0E32\u0E08\u0E30\u0E44\u0E1B\u0E40\u0E2D\u0E32\u0E15\u0E36\u0E01
+      B \u0E40\u0E21\u0E22\u0E4C\u0E08\u0E30\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E14\u0E49\u0E27\u0E22\u0E21\u0E31\u0E49\u0E22"
+    nextNodeId: 
+    actions: []
+    choices:
+    - choiceText: "\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: Gowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    - choiceText: "\u0E44\u0E21\u0E48\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: NotGowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: Gowithwatt
+    nodeType: 0
+    characterName: "\u0E40\u0E21\u0E22\u0E4C"
+    portrait: {fileID: 21300000, guid: 13922cf1a16a8e340a0e36d3c80d259b, type: 3}
+    dialogueText: "\u0E44\u0E14\u0E49\u0E2A\u0E34 \u0E40\u0E14\u0E35\u0E4B\u0E22\u0E27\u0E2B\u0E19\u0E39\u0E40\u0E14\u0E34\u0E19\u0E44\u0E1B\u0E14\u0E49\u0E27\u0E22!"
+    nextNodeId: Watt_accept
+    actions: []
+    choices:
+    - choiceText: "\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: Gowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    - choiceText: "\u0E44\u0E21\u0E48\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: NotGowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: NotGowithwatt
+    nodeType: 0
+    characterName: "\u0E40\u0E21\u0E22\u0E4C"
+    portrait: {fileID: 21300000, guid: 13922cf1a16a8e340a0e36d3c80d259b, type: 3}
+    dialogueText: "\u0E44\u0E21\u0E48\u0E40\u0E1B\u0E47\u0E19\u0E44\u0E23\u0E04\u0E48\u0E30\u0E1E\u0E35\u0E48
+      \u0E40\u0E14\u0E35\u0E4B\u0E22\u0E27\u0E2B\u0E19\u0E39\u0E44\u0E1B\u0E2B\u0E32\u0E02\u0E2D\u0E07\u0E01\u0E48\u0E2D\u0E19\u0E14\u0E35\u0E01\u0E27\u0E48\u0E32"
+    nextNodeId: Watt_decline
+    actions: []
+    choices:
+    - choiceText: "\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: Gowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    - choiceText: "\u0E44\u0E21\u0E48\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: NotGowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 0
+    editorNote: 
+  - nodeId: Watt_accept
+    nodeType: 0
+    characterName: "\u0E27\u0E31\u0E12\u0E19\u0E4C"
+    portrait: {fileID: 21300000, guid: fb6cfab89dce1324ea33e9e513902bb4, type: 3}
+    dialogueText: "\u0E42\u0E2D\u0E40\u0E04\u0E15\u0E32\u0E21\u0E1E\u0E35\u0E48\u0E21\u0E32\u0E19\u0E30"
+    nextNodeId: 
+    actions: []
+    choices:
+    - choiceText: "\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: Gowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    - choiceText: "\u0E44\u0E21\u0E48\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: NotGowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 1
+    editorNote: 
+  - nodeId: Watt_decline
+    nodeType: 0
+    characterName: "\u0E27\u0E31\u0E12\u0E19\u0E4C"
+    portrait: {fileID: 21300000, guid: fb6cfab89dce1324ea33e9e513902bb4, type: 3}
+    dialogueText: "\u0E42\u0E2D\u0E40\u0E04\u0E44\u0E21\u0E48\u0E40\u0E1B\u0E47\u0E19\u0E44\u0E23\u0E46\u0E40\u0E14\u0E35\u0E4B\u0E22\u0E27\u0E1E\u0E35\u0E48\u0E44\u0E1B\u0E40\u0E2D\u0E07"
+    nextNodeId: 
+    actions: []
+    choices:
+    - choiceText: "\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: Gowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    - choiceText: "\u0E44\u0E21\u0E48\u0E44\u0E1B\u0E01\u0E31\u0E1A\u0E1E\u0E35\u0E48\u0E27\u0E31\u0E12\u0E19\u0E4C"
+      targetNodeId: NotGowithwatt
+      requirementCondition:
+        enabled: 0
+        type: 0
+        itemId: 
+        variableName: 
+        compareOperator: 0
+        compareValue: 0
+        questId: 
+        questState: 0
+        customMethodName: 
+      onSelectActions: []
+      onSelectEvent:
+        m_PersistentCalls:
+          m_Calls: []
+      variableModifiers: []
+    condition:
+      enabled: 0
+      type: 0
+      itemId: 
+      variableName: 
+      compareOperator: 0
+      compareValue: 0
+      questId: 
+      questState: 0
+      customMethodName: 
+    trueNodeId: 
+    falseNodeId: 
+    isEndNode: 1
+    editorNote: 
+  lockPlayerMovement: 1
+  hideOtherUI: 0
+  variables: []

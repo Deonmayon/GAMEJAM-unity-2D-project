@@ -38,7 +38,6 @@ public class PlayerVision : MonoBehaviour
     {
         if (!debugVision || eyes == null) return;
 
-        // Draw circular detection range
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(eyes.position, detectionRange);
     }
